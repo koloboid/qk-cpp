@@ -1,0 +1,12 @@
+#ifndef DBMYSQL_GLOBAL_HPP
+#define DBMYSQL_GLOBAL_HPP
+
+#include <QtCore/qglobal.h>
+
+#if defined(DBMYSQL_LIBRARY)
+#  define DBMYSQLSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define DBMYSQLSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // DBMYSQL_GLOBAL_HPP
