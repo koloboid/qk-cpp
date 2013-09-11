@@ -7,3 +7,7 @@ QkDb::QkDb()
 QkDb::~QkDb()
 {
 }
+
+void QkDb::init()
+{
+}

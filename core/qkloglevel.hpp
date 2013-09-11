@@ -3,19 +3,17 @@
 
 #include "qkenum.hpp"
 
-QkEnumBegin(QkLogLevel, quint8)
-{
-    QkEnum(MaskNone,     0x00, "NONE", "")
-    QkEnum(Trace,        0x01, "TRACE", "")
-    QkEnum(Debug,        0x02, "DEBUG", "")
-    QkEnum(Info,         0x04, "INFO", "")
-    QkEnum(Warn,         0x08, "WARN", "")
-    QkEnum(Assert,       0x10, "ASSERT", "")
-    QkEnum(Error,        0x20, "ERROR", "")
-    QkEnum(Fatality,     0x40, "FATAL", "")
-    QkEnum(MaskErrors,   0x70, "ERRORS", "")
-    QkEnum(MaskAll,      0xFF, "ALL", "")
-}
-QkEnumEnd(QkLogLevel, MaskNone)
+QkEnumBegin(QkLogLevel, quint8, MaskNone)
+    QkEnum(QkLogLevel, MaskNone,     0x00, "NONE", "")
+    QkEnum(QkLogLevel, Trace,        0x01, "TRACE", "")
+    QkEnum(QkLogLevel, Debug,        0x02, "DEBUG", "")
+    QkEnum(QkLogLevel, Info,         0x04, "INFO", "")
+    QkEnum(QkLogLevel, Warn,         0x08, "WARN", "")
+    QkEnum(QkLogLevel, Assert,       0x10, "ASSERT", "")
+    QkEnum(QkLogLevel, Error,        0x20, "ERROR", "")
+    QkEnum(QkLogLevel, Fatality,     0x40, "FATAL", "")
+    QkEnum(QkLogLevel, MaskErrors,   0x70, "ERRORS", "")
+    QkEnum(QkLogLevel, MaskAll,      0xFF, "ALL", "")
+QkEnumEnd
 
 #endif

@@ -12,11 +12,13 @@
 
 class QkDbTableBase;
 class QkDbField;
-typedef quint64 QkDbRowID;
 
 class QKDB_EXPORT QkDbRow : public QkThrowable
 {
+    static QMetaType::Type metaTypeID();
+
 public:
+    QkDbRow();
     QkDbRow(const QkDbTableBase* pTable);
     QkDbRow(const QkDbTableBase* pTable, QString pJSON);
     QkDbRow(const QkDbTableBase* pTable, QSqlRecord pRecord);
@@ -24,7 +26,6 @@ public:
 
 public:
     const QkDbTableBase* table() const { return mData->mTable; }
-    QkDbRowID rowId() const;
     QString toString() const;
     QString toJSON() const;
     bool isOriginal() const;
@@ -62,3 +63,5 @@ private:
     };
     QExplicitlySharedDataPointer<RowData> mData;
 };
+
+Q_DECLARE_METATYPE(QkDbRow)

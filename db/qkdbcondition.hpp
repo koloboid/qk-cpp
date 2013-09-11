@@ -41,6 +41,7 @@ public:
     QkDbCondition(const QkDbCondition& pCondition);
     QkDbCondition(const QkDbField& pFieldLeft, EOperator pOperator, QVariant pValueRight);
     QkDbCondition(const QkDbCondition& pCondLeft, EOperator pOperator, const QkDbCondition& pCondRight);
+    ~QkDbCondition();
 
 public:
     EType type() const;

@@ -21,7 +21,7 @@ public:
     QkDb* db() const { return mDb; }
 
 public:
-    QkDbRow selectRow(QkDbRowID pID) const;
+    QkDbRow selectRow(QVariant pID) const;
     QkDbRow newRow() const { return createRow(); }
     QkDbQuery select() const;
 
@@ -44,7 +44,7 @@ public:
     }
 
 public:
-    TRowType selectRow(QkDbRowID pID) const;
+    TRowType selectRow(QVariant pID) const;
     TRowType newRow() const { return TRowType(this); }
 
 protected:

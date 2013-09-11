@@ -88,7 +88,7 @@ public:
 
     QkLogItem append(QkLogLevel pLevel, const QString pMessage, const QString pLocation = "")
     {
-        if (mLevelMask.isSet(pLevel)) return QkLogItem(mBase, pLevel, pMessage, pLocation).source(mSource);
+        if (mLevelMask.hasOneOf(pLevel)) return QkLogItem(mBase, pLevel, pMessage, pLocation).source(mSource);
         else return QkLogItem();
     }
 

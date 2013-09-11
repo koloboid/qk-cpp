@@ -68,7 +68,7 @@ void QkLogBase::stop()
 
 bool QkLogBase::addStdLoggers(bool pUseColor)
 {
-    return addLogger(new QkLoggerTextIO(QkConsoleDevice::stdOut(), QkLogLevel::inverse(QkLogLevel::MaskErrors), pUseColor)) &&
+    return addLogger(new QkLoggerTextIO(QkConsoleDevice::stdOut(), ~QkLogLevel::MaskErrors, pUseColor)) &&
         addLogger(new QkLoggerTextIO(QkConsoleDevice::stdErr(), QkLogLevel::MaskErrors, pUseColor));
 }
 

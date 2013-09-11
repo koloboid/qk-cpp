@@ -1,17 +1,20 @@
 #pragma once
 
-#include <QtCore/QSharedData>
+#include <QDateTime>
 #include <qkerror.hpp>
 #include <qkblob.hpp>
 #include "qkdbrow.hpp"
+#include "qkdbcondition.hpp"
 #include "qkdbfieldflag.hpp"
+#include "qktimespan.hpp"
 
 class QkDbTable;
+class QkDb;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QkDbField
+class QkDbField : public QkThrowable
 {
     Q_DISABLE_COPY(QkDbField)
 
@@ -20,59 +23,26 @@ public:
               QVariant pDefaultValue, QkDbFieldFlag pFlag);
     virtual ~QkDbField();
 
-    bool IsCounter() const;
-    bool IsAutoIncrement() const { return HasFlag(QkDbFieldFlag::AutoIncrement); }
-    bool IsFilterable() const;
-    bool IsIterableJoin() const;
-    bool IsVisible() const;
-    bool IsVisibleJoin() const;
-    bool IsPrimary() const { return HasFlag(EFieldFlag::Primary); }
-    bool IsRefStrong() const { return HasFlag(EFieldFlag::RefStrong); }
-    bool IsRefWeak() const;
-    bool IsRef() const;
-    bool IsPassword() const	{ return HasFlag(EFieldFlag::Password); }
-    bool IsCascadeDelete() const { return HasFlag(EFieldFlag::CascadeDelete); }
-    bool IsHistoryDisabled() const { return HasFlag(EFieldFlag::HistoryDisabled); }
-    bool HasFlag(EFieldFlag pFlag) const { return Flag & pFlag; }
+    virtual void link();
+    virtual bool checkValue(QVariant pValue) const;
 
-    virtual void Link();
-    virtual void CheckValue(DbValue pValue) const;
-
-    DbValue Get(const DbRow& pRow) const
-    {
-        return pRow.Get(*this);
-    }
-    void Set(DbRow& pRow, DbValue pValue) const
-    {
-        pRow.Set(*this, pValue);
-    }
+    QVariant get(const QkDbRow& pRow) const { return pRow.get(this); }
+    void set(QkDbRow& pRow, QVariant pValue) const { pRow.set(this, pValue); }
 
 public:
-    DbCondition operator==(DbValue pValue) const
-    {
-        return DbCondition(*this, DbOperator::Equal, pValue);
-    }
-    DbCondition operator%(QString pString) const
-    {
-        return DbCondition(*this, DbOperator::Like, pString);
-    }
-    DbValue operator()(const DbRow& pRow) const
-    {
-        return Get(pRow);
-    }
-    void operator()(DbRow& pRow, DbValue pValue) const
-    {
-        Set(pRow, pValue);
-    }
+    QkDbCondition operator==(QVariant pValue) const { return QkDbCondition(*this, QkDbCondition::OpEqual, pValue); }
+    QkDbCondition operator%(QString pString) const { return QkDbCondition(*this, QkDbCondition::OpLike, pString); }
+    QVariant operator()(const QkDbRow& pRow) const { return get(pRow); }
+    void operator()(QkDbRow& pRow, QVariant pValue) const { set(pRow, pValue); }
 
 private:
-    const DbTable& Table;
-    const EDbType Type;
-    const QString Name;
-    const QString Title;
-    const QString Description;
-    const DbValue DefaultValue;
-    const EFieldFlag Flag;
+    const QkDbTable* mTable;
+    const QMetaType::Type mType;
+    const QString mName;
+    const QString mTitle;
+    const QString mDescription;
+    const QVariant mDefaultValue;
+    const QkDbFieldFlag mFlag;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,30 +52,18 @@ template<class TType>
 class QkDbFieldGeneric : public QkDbField
 {
 public:
-    QkDbFieldGeneric(DbTable& pTable, EDbType pType, QString pName, QString pTitle = QString(), QString pDescription = QString(),
-                   TType pDefaultValue = DbValue(), EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbField(pTable, pType, pName, pTitle, pDescription, pDefaultValue, pFlag)
+    QkDbFieldGeneric(QkDbTable* pTable, QMetaType::Type pType, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+                   TType pDefaultValue = QVariant(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbField(pTable, pType, pName, pTitle, pDescription, QVariant::fromValue<TType>(pDefaultValue), pFlag)
     {
     }
 
 public:
-    TType Get(const DbRow& pRow) const
-    {
-        return (TType)QkDbField::Get(pRow);
-    }
-    void Set(DbRow& pRow, TType pValue) const
-    {
-        QkDbField::Set(pRow, pValue);
-    }
+    TType get(const QkDbRow& pRow) const { return QkDbField::get(pRow).value(); }
+    void set(QkDbRow& pRow, TType pValue) const { QkDbField::set(pRow, pValue); }
 
-    TType operator()(const DbRow& pRow) const
-    {
-        return Get(pRow);
-    }
-    void operator()(DbRow& pRow, TType pValue) const
-    {
-        Set(pRow, pValue);
-    }
+    TType operator()(const QkDbRow& pRow) const { return get(pRow); }
+    void operator()(QkDbRow& pRow, TType pValue) const { set(pRow, pValue); }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,41 +72,23 @@ public:
 class QkDbFieldString : public QkDbField
 {
 public:
-    QkDbFieldString(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
-                  quint32 pMaxSize = 256, QString pDefault = QString(), EFieldFlag pFlag = (EFieldFlag)(EFieldFlag::Simple | EFieldFlag::Filterable))
-        : QkDbField(pTable, EDbType::String, pName, pTitle, pDescription, pDefault, pFlag),
+    QkDbFieldString(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
+                  quint32 pMaxSize = 256, QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple | QkDbFieldFlag::Filterable)
+        : QkDbField(pTable, QMetaType::QString, pName, pTitle, pDescription, pDefault, pFlag),
           mMinSize(pMinSize), mMaxSize(pMaxSize)
     {
     }
 
 public:
-    virtual void CheckValue(DbValue pValue) const override;
-    quint32 MinSize() const
-    {
-        return mMinSize;
-    }
-    quint32 MaxSize() const
-    {
-        return mMaxSize;
-    }
+    virtual bool checkValue(QVariant pValue) const override;
+    quint32 minSize() const { return mMinSize; }
+    quint32 maxSize() const { return mMaxSize; }
 
-    QString Get(const DbRow& pRow) const
-    {
-        return QkDbField::Get(pRow).AsString();
-    }
-    void Set(DbRow& pRow, QString pValue) const
-    {
-        QkDbField::Set(pRow, pValue);
-    }
+    QString get(const QkDbRow& pRow) const { return QkDbField::get(pRow).toString(); }
+    void set(QkDbRow& pRow, QString pValue) const { QkDbField::set(pRow, pValue); }
 
-    QString operator()(const DbRow& pRow) const
-    {
-        return Get(pRow);
-    }
-    void operator()(DbRow& pRow, QString pValue) const
-    {
-        Set(pRow, pValue);
-    }
+    QString operator()(const QkDbRow& pRow) const { return get(pRow); }
+    void operator()(QkDbRow& pRow, QString pValue) const { set(pRow, pValue); }
 
 private:
     quint32 mMinSize;
@@ -161,8 +101,8 @@ private:
 class QkDbFieldURL : public QkDbFieldString
 {
 public:
-    QkDbFieldURL(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
-               QString pDefault = QString(), EFieldFlag pFlag = EFieldFlag::Simple)
+    QkDbFieldURL(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+               QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 256, pDefault, pFlag)
     {
     }
@@ -174,8 +114,8 @@ public:
 class QkDbFieldImage : public QkDbFieldString
 {
 public:
-    QkDbFieldImage(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
-                 QString pDefault = QString(), EFieldFlag pFlag = EFieldFlag::Simple)
+    QkDbFieldImage(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+                 QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 256, pDefault, pFlag)
     {
     }
@@ -187,8 +127,8 @@ public:
 class QkDbFieldDescription : public QkDbFieldString
 {
 public:
-    QkDbFieldDescription(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
-                       QString pDefault = QString(), EFieldFlag pFlag = (EFieldFlag)(EFieldFlag::Simple | EFieldFlag::Filterable))
+    QkDbFieldDescription(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+                       QString pDefault = QString(), QkDbFieldFlag pFlag = (QkDbFieldFlag)(QkDbFieldFlag::Simple | QkDbFieldFlag::Filterable))
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 4096, pDefault, pFlag)
     {
     }
@@ -200,9 +140,9 @@ public:
 class QkDbFieldBool : public QkDbFieldGeneric<bool>
 {
 public:
-    QkDbFieldBool(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
-                bool pDefault = false, EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbFieldGeneric<bool>(pTable, EDbType::Bool, pName, pTitle, pDescription, pDefault, pFlag)
+    QkDbFieldBool(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+                bool pDefault = false, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbFieldGeneric<bool>(pTable, QMetaType::Type::Bool, pName, pTitle, pDescription, pDefault, pFlag)
     {
     }
 };
@@ -210,41 +150,35 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QkDbFieldTimeSpan : public QkDbFieldGeneric<TimeSpan>
+class QkDbFieldTimeSpan : public QkDbFieldGeneric<QkTimeSpan>
 {
 public:
-    QkDbFieldTimeSpan(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), TimeSpan pMin = TimeSpan::MinValue,
-                    TimeSpan pMax = TimeSpan::MaxValue, TimeSpan pDefault = TimeSpan::MinValue, EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbFieldGeneric<TimeSpan>(pTable, EDbType::TimeSpan, pName, pTitle, pDescription, pDefault, pFlag),
+    QkDbFieldTimeSpan(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkTimeSpan pMin = QkTimeSpan::minValue,
+                    QkTimeSpan pMax = QkTimeSpan::maxValue, QkTimeSpan pDefault = QkTimeSpan::minValue, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbFieldGeneric<QkTimeSpan>(pTable, QkTimeSpan::metaTypeID(), pName, pTitle, pDescription, pDefault, pFlag),
           mMinValue(pMin), mMaxValue(pMax)
     {
     }
 
 public:
-    virtual void CheckValue(DbValue pValue) const override;
-    TimeSpan MinValue() const
-    {
-        return mMinValue;
-    }
-    TimeSpan MaxValue() const
-    {
-        return mMaxValue;
-    }
+    virtual bool checkValue(QVariant pValue) const override;
+    QkTimeSpan MinValue() const { return mMinValue; }
+    QkTimeSpan MaxValue() const { return mMaxValue; }
 
 private:
-    TimeSpan mMinValue;
-    TimeSpan mMaxValue;
+    QkTimeSpan mMinValue;
+    QkTimeSpan mMaxValue;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class TRefTable>
-class QkDbFieldLink : public QkDbFieldGeneric<DbRow>
+class QkDbFieldLink : public QkDbFieldGeneric<QkDbRow>
 {
 public:
-    QkDbFieldLink(DbTable& pTable, Db& pDb, QString pName, QString pTitle = QString(), QString pDescription = QString(), EFieldFlag pFlag = EFieldFlag::RefStrong)
-        : QkDbFieldGeneric<DbRow>(pTable, DbType::Link, pName, pTitle, pDescription, DbRow(pTable), pFlag)
+    QkDbFieldLink(QkDbTable* pTable, const QkDb* pDb, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::RefStrong)
+        : QkDbFieldGeneric<QkDbRow>(pTable, QkDbRow::metaTypeID(), pName, pTitle, pDescription, QkDbRow(pTable), pFlag)
     {
     }
 
@@ -255,74 +189,51 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QkDbFieldPK : public QkDbFieldGeneric<DbRowID>
-{
-public:
-    QkDbFieldPK(DbTable& pTable, QString pName = "ID", QString pTitle = TR("Идентификатор"), QString pDescription = QString())
-        : QkDbFieldGeneric<DbRowID>(pTable, DbType::UInt64, pName, pTitle, pDescription, 0, (EFieldFlag)(EFieldFlag::Primary | EFieldFlag::AutoIncrement))
-    {
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template<class TEnum, EDbType TBaseType>
+template<class TEnum, QMetaType::Type TBasetype>
 class QkDbFieldEnum : public QkDbField
 {
 public:
-    QkDbFieldEnum(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbField(pTable, (EDbType)TBaseType, pName, pTitle, pDescription, 0, pFlag)
+    QkDbFieldEnum(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbField(pTable, (QMetaType::Type)TBasetype, pName, pTitle, pDescription, 0, pFlag)
     {
     }
 
 public:
-    TEnum Get(const DbRow& pRow) const
+    TEnum get(const QkDbRow& pRow) const
     {
-        return TEnum(QkDbField::Get(pRow).AsUInt64());
+        return TEnum(QkDbField::get(pRow).AsUInt64());
     }
-    void Set(DbRow& pRow, const TEnum& pValue) const
+    void set(QkDbRow& pRow, const TEnum& pValue) const
     {
-        QkDbField::Set(pRow, pValue.AsInt());
+        QkDbField::set(pRow, pValue.AsInt());
     }
-    TEnum operator()(const DbRow& pRow) const
+    TEnum operator()(const QkDbRow& pRow) const
     {
-        return Get(pRow);
+        return get(pRow);
     }
-    void operator()(DbRow& pRow, const TEnum& pValue) const
+    void operator()(QkDbRow& pRow, const TEnum& pValue) const
     {
-        QkDbField::Set(pRow, pValue.AsInt());
+        QkDbField::set(pRow, pValue.AsInt());
     }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class QkDbFieldBlob : public QkDbFieldGeneric<Blob>
+class QkDbFieldBlob : public QkDbFieldGeneric<QkBlob>
 {
 public:
-    QkDbFieldBlob(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
-                quint32 pMaxSize = 1024, Blob pDefault = Blob(), EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbFieldGeneric<Blob>(pTable, EDbType::UInt8, pName, pTitle, pDescription, pDefault, pFlag),
+    QkDbFieldBlob(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
+                quint32 pMaxSize = 1024, QkBlob pDefault = QkBlob(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbFieldGeneric<QkBlob>(pTable, QMetaType::QByteArray, pName, pTitle, pDescription, pDefault, pFlag),
           mMinSize(pMinSize), mMaxSize(pMaxSize)
     {
     }
 
 public:
-    virtual void CheckValue(DbValue pValue) const override;
-    quint32 MinSize() const
-    {
-        return mMinSize;
-    }
-    quint32 MaxSize() const
-    {
-        return mMaxSize;
-    }
-
-    Blob operator()(const DbRow& pRow) const
-    {
-        return Get(pRow);
-    }
+    virtual bool checkValue(QVariant pValue) const override;
+    quint32 minSize() const { return mMinSize; }
+    quint32 maxSize() const { return mMaxSize; }
 
 private:
     quint32 mMinSize;
@@ -335,25 +246,19 @@ private:
 class QkDbFieldDateTime : public QkDbFieldGeneric<QDateTime>
 {
 public:
-    QkDbFieldDateTime(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldDateTime(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                     QDateTime pMin = QDateTime::fromMSecsSinceEpoch(std::numeric_limits<qint64>::min()),
                     QDateTime pMax = QDateTime::fromMSecsSinceEpoch(std::numeric_limits<qint64>::max()),
-                    QDateTime pDefault = QDateTime::currentDateTime(), EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbFieldGeneric<QDateTime>(pTable, EDbType::DateTime, pName, pTitle, pDescription, pDefault, pFlag),
+                    QDateTime pDefault = QDateTime::currentDateTime(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbFieldGeneric<QDateTime>(pTable, QMetaType::QDateTime, pName, pTitle, pDescription, pDefault, pFlag),
           mMinValue(pMin), mMaxValue(pMax)
     {
     }
 
 public:
-    virtual void CheckValue(DbValue pValue) const override;
-    QDateTime MinValue() const
-    {
-        return mMinValue;
-    }
-    QDateTime MaxValue() const
-    {
-        return mMaxValue;
-    }
+    virtual bool checkValue(QVariant pValue) const override;
+    QDateTime minValue() const { return mMinValue; }
+    QDateTime maxValue() const { return mMaxValue; }
 
 private:
     QDateTime mMinValue;
@@ -363,54 +268,47 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<class TNumber, EDbType TType>
+template<class TNumber, QMetaType::Type TType>
 class QkDbFieldNumber : public QkDbFieldGeneric<TNumber>
 {
 public:
-    QkDbFieldNumber(DbTable& pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldNumber(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                   TNumber pMin = std::numeric_limits<TNumber>::min(),
                   TNumber pMax = std::numeric_limits<TNumber>::max(),
-                  TNumber pDefault = 0, EFieldFlag pFlag = EFieldFlag::Simple)
-        : QkDbFieldGeneric<TNumber>(pTable, (EDbType)TType, pName, pTitle, pDescription, pDefault, pFlag),
+                  TNumber pDefault = 0, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+        : QkDbFieldGeneric<TNumber>(pTable, (QMetaType::Type)TType, pName, pTitle, pDescription, pDefault, pFlag),
           mMinValue(pMin), mMaxValue(pMax)
     {
     }
 
 public:
-    virtual void CheckValue(DbValue pValue) const override
+    virtual bool checkValue(QVariant pValue) const override
     {
         TNumber num = pValue;
-
-        if (num < mMinValue) throw ErrorFieldCheck(ERRLOC, TR("Поле '%1' должно быть больше чем '%2'").arg(this->Title).arg(mMinValue));
-
-        if (num > mMaxValue) throw ErrorFieldCheck(ERRLOC, TR("Поле '%1' должно быть не более чем '%2'").arg(this->Title).arg(mMaxValue));
-
-            QkDbField::CheckValue(pValue);
-        }
-
-        TNumber MinSize() const
-            {
-                return mMinValue;
-            }
-    TNumber MaxSize() const
-    {
-        return mMaxValue;
+        if (num < mMinValue)
+            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть больше чем '%2'").arg(this->Title).arg(mMinValue)));
+        if (num > mMaxValue)
+            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть не более чем '%2'").arg(this->Title).arg(mMaxValue)));
+        return QkDbFieldGeneric<TNumber>::checkValue(pValue);
     }
+
+    TNumber minValue() const { return mMinValue; }
+    TNumber maxValue() const { return mMaxValue; }
 
 private:
     TNumber mMinValue;
     TNumber mMaxValue;
 };
 
-typedef QkDbFieldNumber<quint8, DbType::UInt8> QkDbFieldUInt8;
-typedef QkDbFieldNumber<quint16, DbType::UInt16> QkDbFieldUInt16;
-typedef QkDbFieldNumber<quint32, DbType::UInt32> QkDbFieldUInt32;
-typedef QkDbFieldNumber<quint64, DbType::UInt64> QkDbFieldUInt64;
+typedef QkDbFieldNumber<quint8, QMetaType::UChar> QkDbFieldUInt8;
+typedef QkDbFieldNumber<quint16, QMetaType::UShort> QkDbFieldUInt16;
+typedef QkDbFieldNumber<quint32, QMetaType::UInt> QkDbFieldUInt32;
+typedef QkDbFieldNumber<quint64, QMetaType::ULongLong> QkDbFieldUInt64;
 
-typedef QkDbFieldNumber<qint8, DbType::Int8> QkDbFieldInt8;
-typedef QkDbFieldNumber<qint16, DbType::Int16> QkDbFieldInt16;
-typedef QkDbFieldNumber<qint32, DbType::Int32> QkDbFieldInt32;
-typedef QkDbFieldNumber<qint64, DbType::Int64> QkDbFieldInt64;
+typedef QkDbFieldNumber<qint8, QMetaType::Char> QkDbFieldInt8;
+typedef QkDbFieldNumber<qint16, QMetaType::Short> QkDbFieldInt16;
+typedef QkDbFieldNumber<qint32, QMetaType::Int> QkDbFieldInt32;
+typedef QkDbFieldNumber<qint64, QMetaType::LongLong> QkDbFieldInt64;
 
-typedef QkDbFieldNumber<float, DbType::Float> QkDbFieldFloat;
-typedef QkDbFieldNumber<double, DbType::Double> QkDbFieldDouble;
+typedef QkDbFieldNumber<float, QMetaType::Float> QkDbFieldFloat;
+typedef QkDbFieldNumber<double, QMetaType::Double> QkDbFieldDouble;

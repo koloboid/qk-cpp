@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     core \
-#    db \
+    db \
 #    dbmysql \
 #    dbrest \
     tests

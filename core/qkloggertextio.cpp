@@ -9,7 +9,7 @@ QkLoggerTextIO::QkLoggerTextIO(QIODevice *pDevice, QkLogLevel pLevel, bool pUseC
 
 void QkLoggerTextIO::writeItem(const QkLogItem &pItem)
 {
-    if (mLevelMask.isSet(pItem.level()))
+    if (mLevelMask & pItem.level())
     {
         QString message = pItem.message();
         if (!pItem.details().isEmpty()) message += "\n\tDetails: " + pItem.details();
@@ -23,7 +23,7 @@ void QkLoggerTextIO::writeItem(const QkLogItem &pItem)
         QString text = QString("%1  %3\t%2  \t%4\n")
                        .arg(pItem.time().toString("dd.MM.yyyy HH:mm:ss.zzz"))
                        .arg(pItem.source())
-                       .arg(pItem.level().title())
+                       .arg(pItem.level().getTitle())
                        .arg(message);
 
         if (mUseColor)

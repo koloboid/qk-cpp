@@ -4,6 +4,7 @@
 #include "qkvalref.hpp"
 
 #include <QByteArray>
+#include <QMetaType>
 
 class QKCORE_EXPORT QkBlob : public QByteArray
 {
@@ -36,3 +37,5 @@ public:
     QkValRef<QByteArray, quint8> operator[](int i) { return QkValRef<QByteArray, quint8>(*this, i); }
     QkValRef<QByteArray, quint8> operator[](uint i) { return QkValRef<QByteArray, quint8>(*this, i); }
 };
+
+Q_DECLARE_METATYPE(QkBlob)
