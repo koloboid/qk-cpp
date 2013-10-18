@@ -8,13 +8,13 @@
 
 class QkDb;
 
-class QKDB_EXPORT QkDbTable
+class QKDB_EXPORT QkDbTableBase : public QkThrowable
 {
-    Q_DISABLE_COPY(QkDbTable)
+    Q_DISABLE_COPY(QkDbTableBase)
 
 public:
-    QkDbTable(QkDb* pDb, const QString& pName, const QString& pTitle, const QString& pDescr, QkDbField* pJoinParentField);
-    virtual ~QkDbTable();
+    QkDbTableBase(QkDb* pDb, const QString& pName, const QString& pTitle, const QString& pDescr, QkDbField* pJoinParentField);
+    virtual ~QkDbTableBase();
 
 public:
     const QkDbTableSchema* schema() const { return &mSchema; }
@@ -24,6 +24,8 @@ public:
     QkDbRow selectRow(QVariant pID) const;
     QkDbRow newRow() const { return createRow(); }
     QkDbQuery select() const;
+    virtual bool init();
+    virtual bool migrate();
 
 protected:
     virtual QkDbRow createRow() const = 0;
@@ -34,12 +36,12 @@ private:
 };
 
 
-template<class TRowType>
-class QkDbTableTempl : public QkDbTable
+template<class TRowType = QkDbRow>
+class QkDbTable : public QkDbTableBase
 {
 public:
-    QkDbTableTempl(QkDb* pDb, const QString& pName, const QString& pTitle, const QString& pDescr, QkDbField* pJoinParentField)
-        : QkDbTable(pDb, pName, pTitle, pDescr, pJoinParentField)
+    QkDbTable(QkDb* pDb, const QString& pName, const QString& pTitle, const QString& pDescr, QkDbField* pJoinParentField)
+        : QkDbTableBase(pDb, pName, pTitle, pDescr, pJoinParentField)
     {
     }
 

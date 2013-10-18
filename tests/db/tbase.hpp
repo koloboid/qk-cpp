@@ -1,42 +1,17 @@
 #pragma once
 
-#include <qkdb.hpp>
-#include <memory>
+#include <qkdbtable.hpp>
 
 template<class TRowType = QkDbRow>
 class TBase : public QkDbTable<TRowType>
 {
 public:
     TBase(QkDb* pDb, QString pName, QString pTitle, QString pDescription, QkDbField* pJoinParentField)
-        : QkDbTable<TRowType>(pDb, pName, pTitle, pDescription, pJoinParentField)
+        : QkDbTable<TRowType>(pDb, pName, pTitle, pDescription, pJoinParentField),
+          ID(this, "ID", "", "")
     {
     }
 
 public:
-    const QkDbField ID;
-};
-
-class TUser;
-
-class RUser : public QkDbRow
-{
-public:
-    RUser(const QkDbTableBase* pParent)
-        : QkDbRow(pParent)
-    {
-    }
-
-    void foo();
-};
-
-class TUser : public TBase<RUser>
-{
-public:
-    TUser()
-        : TBase(0, "", "", "", 0)
-    {
-    }
-
-public:
-    const QkDbField Name;
+    const QkDbFieldUInt64 ID;
 };

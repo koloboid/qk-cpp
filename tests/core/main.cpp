@@ -6,7 +6,6 @@ void fun()
     QkLogScope("");
 }
 
-
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);

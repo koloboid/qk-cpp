@@ -22,14 +22,14 @@ SOURCES += qkdb.cpp \
     qkdbfield.cpp \
     qkdbindex.cpp \
     qkdbdriver.cpp \
-    qkdbdrv.cpp \
     qkdbresult.cpp \
     qkdbmodel.cpp \
     qkdbfieldflag.cpp \
     qkdbrowstate.cpp \
     qkdbrowaction.cpp \
     qkdbcondition.cpp \
-    qkdbquery.cpp
+    qkdbquery.cpp \
+    qkdbdrivermysql.cpp
 
 HEADERS += qkdb.hpp\
     qkdbtable.hpp \
@@ -38,7 +38,6 @@ HEADERS += qkdb.hpp\
     qkdbfield.hpp \
     qkdbindex.hpp \
     qkdbdriver.hpp \
-    qkdbdrv.hpp \
     qkdbresult.hpp \
     qkdbmodel.hpp \
     qkdbfieldflag.hpp \
@@ -47,7 +46,8 @@ HEADERS += qkdb.hpp\
     qkdbcondition.hpp \
     qkdbquery.hpp \
     qkdb.export.hpp \
-    qkdbvalue.hpp
+    qkdbvalue.hpp \
+    qkdbdrivermysql.hpp
 
 unix:!symbian {
     maemo5 {

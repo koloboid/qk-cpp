@@ -8,13 +8,17 @@
 #include "qkdb.export.hpp"
 #include "qkdbvalue.hpp"
 #include "qkdbrowstate.hpp"
+#include <qktimespan.hpp>
 #include <qkthrowable.hpp>
+#include <qkdbdriver.hpp>
+#include <qkfuture.hpp>
 
 class QkDbTableBase;
 class QkDbField;
 
 class QKDB_EXPORT QkDbRow : public QkThrowable
 {
+public:
     static QMetaType::Type metaTypeID();
 
 public:
@@ -28,17 +32,14 @@ public:
     const QkDbTableBase* table() const { return mData->mTable; }
     QString toString() const;
     QString toJSON() const;
-    bool isOriginal() const;
-    bool isNew() const;
-    bool isModified() const;
     QkDbRowState state() const;
     QSet<const QkDbField*> changes() const;
     QList<QkError> check() const;
 
-    bool save();
-    void scheduleSave();
-    bool drop();
-    bool reload();
+    QkFuture<bool> save(const QkFuture<bool>::StdCallback& pCallback = QkFuture<bool>::StdCallback());
+    void scheduleSave(QkTimeSpan pTime = 5000);
+    QkFuture<bool> drop(const QkFuture<bool>::StdCallback& pCallback = QkFuture<bool>::StdCallback());
+    QkFuture<bool> reload(const QkFuture<bool>::StdCallback& pCallback = QkFuture<bool>::StdCallback());
 
     QVariant get(const QkDbField& pField) const;
     QVariant get(const QkDbField* pField) const;
@@ -55,6 +56,7 @@ private:
         QSet<const QkDbField*> mChangedFields;
         bool mNeedWriteToHistory = false;
         const QkDbTableBase* mTable;
+        bool mLocked = false;
 
         RowData(const QkDbTableBase* pTable, QkDbRowState pState = QkDbRowState::New)
             : mState(pState), mTable(pTable)

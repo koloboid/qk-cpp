@@ -1,6 +1,7 @@
 #include "qkconfig.hpp"
 
-QkConfig::QkConfig()
+QkConfig::QkConfig(QObject* pParent)
+    : QObject(pParent)
 {
 }
 
@@ -8,7 +9,7 @@ QkConfig::~QkConfig()
 {
 }
 
-bool QkConfig::init()
+bool QkConfig::init(int pArgc, char** pArgv)
 {
     return false;
 }

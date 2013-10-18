@@ -21,7 +21,8 @@ SOURCES += tst_qkdbtest.cpp \
     tuser.cpp \
     tusergroup.cpp \
     tentity.cpp \
-    tbase.cpp
+    tbase.cpp \
+    testconf.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../core/release/ -lqk.core
@@ -42,4 +43,12 @@ HEADERS += \
     tuser.hpp \
     tusergroup.hpp \
     tentity.hpp \
-    tbase.hpp
+    tbase.hpp \
+    testconf.hpp
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../dbmysql/release/ -ldbmysql
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../dbmysql/debug/ -ldbmysql
+else:unix: LIBS += -L$$OUT_PWD/../../dbmysql/ -ldbmysql
+
+INCLUDEPATH += $$PWD/../../dbmysql
+DEPENDPATH += $$PWD/../../dbmysql

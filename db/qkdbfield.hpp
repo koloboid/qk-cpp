@@ -7,8 +7,9 @@
 #include "qkdbcondition.hpp"
 #include "qkdbfieldflag.hpp"
 #include "qktimespan.hpp"
+#include "qkdb.hpp"
 
-class QkDbTable;
+class QkDbTableBase;
 class QkDb;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,15 +20,19 @@ class QkDbField : public QkThrowable
     Q_DISABLE_COPY(QkDbField)
 
 public:
-    QkDbField(QkDbTable* pTable, QMetaType::Type pType, QString pName, QString pTitle, QString pDescription,
+    QkDbField(QkDbTableBase* pTable, QMetaType::Type pType, QString pName, QString pTitle, QString pDescription,
               QVariant pDefaultValue, QkDbFieldFlag pFlag);
     virtual ~QkDbField();
 
-    virtual void link();
+    virtual bool link();
     virtual bool checkValue(QVariant pValue) const;
 
     QVariant get(const QkDbRow& pRow) const { return pRow.get(this); }
     void set(QkDbRow& pRow, QVariant pValue) const { pRow.set(this, pValue); }
+
+    QString title() const { return mTitle; }
+    QString name() const { return mName; }
+    QString description() const { return mDescription; }
 
 public:
     QkDbCondition operator==(QVariant pValue) const { return QkDbCondition(*this, QkDbCondition::OpEqual, pValue); }
@@ -36,7 +41,7 @@ public:
     void operator()(QkDbRow& pRow, QVariant pValue) const { set(pRow, pValue); }
 
 private:
-    const QkDbTable* mTable;
+    const QkDbTableBase* mTable;
     const QMetaType::Type mType;
     const QString mName;
     const QString mTitle;
@@ -52,7 +57,7 @@ template<class TType>
 class QkDbFieldGeneric : public QkDbField
 {
 public:
-    QkDbFieldGeneric(QkDbTable* pTable, QMetaType::Type pType, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldGeneric(QkDbTableBase* pTable, QMetaType::Type pType, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                    TType pDefaultValue = QVariant(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbField(pTable, pType, pName, pTitle, pDescription, QVariant::fromValue<TType>(pDefaultValue), pFlag)
     {
@@ -72,7 +77,7 @@ public:
 class QkDbFieldString : public QkDbField
 {
 public:
-    QkDbFieldString(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
+    QkDbFieldString(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
                   quint32 pMaxSize = 256, QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple | QkDbFieldFlag::Filterable)
         : QkDbField(pTable, QMetaType::QString, pName, pTitle, pDescription, pDefault, pFlag),
           mMinSize(pMinSize), mMaxSize(pMaxSize)
@@ -101,7 +106,7 @@ private:
 class QkDbFieldURL : public QkDbFieldString
 {
 public:
-    QkDbFieldURL(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldURL(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 256, pDefault, pFlag)
     {
@@ -114,7 +119,7 @@ public:
 class QkDbFieldImage : public QkDbFieldString
 {
 public:
-    QkDbFieldImage(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldImage(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                  QString pDefault = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 256, pDefault, pFlag)
     {
@@ -127,7 +132,7 @@ public:
 class QkDbFieldDescription : public QkDbFieldString
 {
 public:
-    QkDbFieldDescription(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldDescription(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                        QString pDefault = QString(), QkDbFieldFlag pFlag = (QkDbFieldFlag)(QkDbFieldFlag::Simple | QkDbFieldFlag::Filterable))
         : QkDbFieldString(pTable, pName, pTitle, pDescription, 0, 4096, pDefault, pFlag)
     {
@@ -140,7 +145,7 @@ public:
 class QkDbFieldBool : public QkDbFieldGeneric<bool>
 {
 public:
-    QkDbFieldBool(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldBool(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                 bool pDefault = false, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldGeneric<bool>(pTable, QMetaType::Type::Bool, pName, pTitle, pDescription, pDefault, pFlag)
     {
@@ -153,7 +158,7 @@ public:
 class QkDbFieldTimeSpan : public QkDbFieldGeneric<QkTimeSpan>
 {
 public:
-    QkDbFieldTimeSpan(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkTimeSpan pMin = QkTimeSpan::minValue,
+    QkDbFieldTimeSpan(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkTimeSpan pMin = QkTimeSpan::minValue,
                     QkTimeSpan pMax = QkTimeSpan::maxValue, QkTimeSpan pDefault = QkTimeSpan::minValue, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldGeneric<QkTimeSpan>(pTable, QkTimeSpan::metaTypeID(), pName, pTitle, pDescription, pDefault, pFlag),
           mMinValue(pMin), mMaxValue(pMax)
@@ -177,8 +182,9 @@ template<class TRefTable>
 class QkDbFieldLink : public QkDbFieldGeneric<QkDbRow>
 {
 public:
-    QkDbFieldLink(QkDbTable* pTable, const QkDb* pDb, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::RefStrong)
-        : QkDbFieldGeneric<QkDbRow>(pTable, QkDbRow::metaTypeID(), pName, pTitle, pDescription, QkDbRow(pTable), pFlag)
+    QkDbFieldLink(QkDbTableBase* pTable, const QkDb* pDb, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::RefStrong)
+        : QkDbFieldGeneric<QkDbRow>(pTable, QkDbRow::metaTypeID(), pName, pTitle, pDescription, QkDbRow(pTable), pFlag),
+          Join(pDb->getTable<TRefTable>(""))
     {
     }
 
@@ -193,7 +199,7 @@ template<class TEnum, QMetaType::Type TBasetype>
 class QkDbFieldEnum : public QkDbField
 {
 public:
-    QkDbFieldEnum(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
+    QkDbFieldEnum(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbField(pTable, (QMetaType::Type)TBasetype, pName, pTitle, pDescription, 0, pFlag)
     {
     }
@@ -223,7 +229,7 @@ public:
 class QkDbFieldBlob : public QkDbFieldGeneric<QkBlob>
 {
 public:
-    QkDbFieldBlob(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
+    QkDbFieldBlob(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(), quint32 pMinSize = 0,
                 quint32 pMaxSize = 1024, QkBlob pDefault = QkBlob(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
         : QkDbFieldGeneric<QkBlob>(pTable, QMetaType::QByteArray, pName, pTitle, pDescription, pDefault, pFlag),
           mMinSize(pMinSize), mMaxSize(pMaxSize)
@@ -246,7 +252,7 @@ private:
 class QkDbFieldDateTime : public QkDbFieldGeneric<QDateTime>
 {
 public:
-    QkDbFieldDateTime(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldDateTime(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                     QDateTime pMin = QDateTime::fromMSecsSinceEpoch(std::numeric_limits<qint64>::min()),
                     QDateTime pMax = QDateTime::fromMSecsSinceEpoch(std::numeric_limits<qint64>::max()),
                     QDateTime pDefault = QDateTime::currentDateTime(), QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
@@ -268,11 +274,11 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template<class TNumber, QMetaType::Type TType>
+template<typename TNumber, QMetaType::Type TType>
 class QkDbFieldNumber : public QkDbFieldGeneric<TNumber>
 {
 public:
-    QkDbFieldNumber(QkDbTable* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
+    QkDbFieldNumber(QkDbTableBase* pTable, QString pName, QString pTitle = QString(), QString pDescription = QString(),
                   TNumber pMin = std::numeric_limits<TNumber>::min(),
                   TNumber pMax = std::numeric_limits<TNumber>::max(),
                   TNumber pDefault = 0, QkDbFieldFlag pFlag = QkDbFieldFlag::Simple)
@@ -284,11 +290,11 @@ public:
 public:
     virtual bool checkValue(QVariant pValue) const override
     {
-        TNumber num = pValue;
+        TNumber num = pValue.value<TNumber>();
         if (num < mMinValue)
-            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть больше чем '%2'").arg(this->Title).arg(mMinValue)));
+            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть больше чем '%2'").arg(this->title()).arg(mMinValue)));
         if (num > mMaxValue)
-            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть не более чем '%2'").arg(this->Title).arg(mMaxValue)));
+            return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть не более чем '%2'").arg(this->title()).arg(mMaxValue)));
         return QkDbFieldGeneric<TNumber>::checkValue(pValue);
     }
 

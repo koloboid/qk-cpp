@@ -24,7 +24,8 @@ SOURCES += \
     qklogitem.cpp \
     qkloglevel.cpp \
     qklog.glibc.cpp \
-    qkenumitem.cpp
+    qkenumitem.cpp \
+    qkfuture.cpp
 
 HEADERS += \
     qklog.hpp \
@@ -43,7 +44,9 @@ HEADERS += \
     qklogitem.hpp \
     qkloglevel.hpp \
     qkblockqueue.hpp \
-    qkenumitem.hpp
+    qkenumitem.hpp \
+    qkobjectpool.hpp \
+    qkfuture.hpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 QMAKE_LFLAGS += -Wl,--no-undefined

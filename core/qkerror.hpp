@@ -19,6 +19,10 @@ public:
     {
     }
 
+    virtual ~QkError()
+    {
+    }
+
     bool hasError() const { return !mMessage.isEmpty() || !mLocation.isEmpty(); }
     QString message() const { return mMessage; }
     QString location() const { return mLocation; }
@@ -27,4 +31,13 @@ public:
 private:
     QString mMessage;
     QString mLocation;
+};
+
+class QKCORE_EXPORT QkErrorNotImplemented : public QkError
+{
+public:
+    QkErrorNotImplemented(const QString& pLocation)
+        : QkError(pLocation, qApp->translate("", "Функция не реализована"))
+    {
+    }
 };
