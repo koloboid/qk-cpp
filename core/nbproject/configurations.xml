@@ -65,6 +65,9 @@
       </toolsSet>
       <qt>
         <modules>core network</modules>
+        <mocDir>build/moc</mocDir>
+        <rccDir>build/rcc</rccDir>
+        <uiDir>build/ui</uiDir>
       </qt>
       <compileType>
         <ccTool>
