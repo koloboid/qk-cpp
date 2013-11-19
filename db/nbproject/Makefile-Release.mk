@@ -62,13 +62,14 @@ FORCE:
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS} nbproject/qt-${CND_CONF}.mk
-	"${MAKE}" -f nbproject/qt-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libqk.core.a
+	"${MAKE}" -f nbproject/qt-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libqk.db.a
 
 ${CND_BUILDDIR}/Release/%.o: nbproject/qt-${CND_CONF}.mk
 	${MAKE} -f nbproject/qt-${CND_CONF}.mk "$@"
 
 # Subprojects
 .build-subprojects:
+	cd ../core && ${MAKE}  -f Makefile CONF=Release
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS} nbproject/qt-${CND_CONF}.mk
@@ -76,3 +77,4 @@ ${CND_BUILDDIR}/Release/%.o: nbproject/qt-${CND_CONF}.mk
 
 # Subprojects
 .clean-subprojects:
+	cd ../core && ${MAKE}  -f Makefile CONF=Release clean

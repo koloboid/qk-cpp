@@ -9,19 +9,19 @@ CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=GNU-Linux-x86
 CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux-x86
-CND_ARTIFACT_NAME_Debug=libqk.core.a
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/libqk.core.a
+CND_ARTIFACT_NAME_Debug=libqk.db.a
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/libqk.db.a
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
-CND_PACKAGE_NAME_Debug=core.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/core.tar
+CND_PACKAGE_NAME_Debug=db.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/db.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux-x86
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
-CND_ARTIFACT_NAME_Release=libqk.core.a
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/libqk.core.a
+CND_ARTIFACT_NAME_Release=libqk.db.a
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/libqk.db.a
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
-CND_PACKAGE_NAME_Release=core.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/core.tar
+CND_PACKAGE_NAME_Release=db.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/db.tar
 #
 # include compiler specific variables
 #

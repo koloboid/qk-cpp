@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="90">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="TestFiles"
+                   displayName="Файлы тестов"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Важные файлы"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <itemPath>Makefile</itemPath>
+    <itemPath>condition.cpp</itemPath>
+    <itemPath>condition.hpp</itemPath>
+    <itemPath>db.cpp</itemPath>
+    <itemPath>db.export.hpp</itemPath>
+    <itemPath>db.hpp</itemPath>
+    <itemPath>dbmacro.hpp</itemPath>
+    <itemPath>driver.cpp</itemPath>
+    <itemPath>driver.hpp</itemPath>
+    <itemPath>drivermysql.cpp</itemPath>
+    <itemPath>drivermysql.hpp</itemPath>
+    <itemPath>errordb.cpp</itemPath>
+    <itemPath>errordb.hpp</itemPath>
+    <itemPath>field.cpp</itemPath>
+    <itemPath>field.hpp</itemPath>
+    <itemPath>fieldflag.cpp</itemPath>
+    <itemPath>fieldflag.hpp</itemPath>
+    <itemPath>model.cpp</itemPath>
+    <itemPath>model.hpp</itemPath>
+    <itemPath>query.cpp</itemPath>
+    <itemPath>query.hpp</itemPath>
+    <itemPath>rowaction.cpp</itemPath>
+    <itemPath>rowaction.hpp</itemPath>
+    <itemPath>rowstate.cpp</itemPath>
+    <itemPath>rowstate.hpp</itemPath>
+    <itemPath>table.cpp</itemPath>
+    <itemPath>table.hpp</itemPath>
+    <itemPath>value.cpp</itemPath>
+    <itemPath>value.hpp</itemPath>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="6">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <qt>
+        <target>qk.db</target>
+        <modules>core sql</modules>
+        <mocDir>build/moc</mocDir>
+        <rccDir>build/rcc</rccDir>
+        <uiDir>build/ui</uiDir>
+      </qt>
+      <compileType>
+        <ccTool>
+          <standard>8</standard>
+          <incDir>
+            <pElem>/home/k0l0b0k/project/active/ggexplorer/gge2/trunk</pElem>
+          </incDir>
+        </ccTool>
+        <archiverTool>
+        </archiverTool>
+        <requiredProjects>
+          <makeArtifact PL="../core"
+                        CT="6"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../core"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libqk.core.a">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+      <item path="Makefile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="condition.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="condition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="db.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="db.export.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="db.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dbmacro.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="driver.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="driver.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="drivermysql.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="drivermysql.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="errordb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="errordb.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="field.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="field.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="fieldflag.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="fieldflag.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="model.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="model.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="query.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="query.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rowaction.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="rowaction.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rowstate.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="rowstate.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="table.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="table.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="value.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="value.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="6">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <qt>
+        <target>qk.db</target>
+        <buildMode>1</buildMode>
+        <modules>core sql</modules>
+        <mocDir>build/moc</mocDir>
+        <rccDir>build/rcc</rccDir>
+        <uiDir>build/ui</uiDir>
+      </qt>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <standard>8</standard>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <archiverTool>
+        </archiverTool>
+        <requiredProjects>
+          <makeArtifact PL="../core"
+                        CT="6"
+                        CN="Release"
+                        AC="false"
+                        BL="true"
+                        WD="../core"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libqk.core.a">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+      <item path="Makefile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="condition.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="condition.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="db.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="db.export.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="db.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dbmacro.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="driver.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="driver.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="drivermysql.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="drivermysql.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="errordb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="errordb.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="field.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="field.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="fieldflag.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="fieldflag.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="model.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="model.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="query.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="query.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rowaction.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="rowaction.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rowstate.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="rowstate.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="table.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="table.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="value.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="value.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

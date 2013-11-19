@@ -64,6 +64,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <qt>
+        <target>qk.core</target>
         <modules>core network</modules>
         <mocDir>build/moc</mocDir>
         <rccDir>build/rcc</rccDir>
@@ -144,8 +145,12 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <qt>
+        <target>qk.core</target>
         <buildMode>1</buildMode>
-        <modules>core gui widgets</modules>
+        <modules>core network</modules>
+        <mocDir>build/moc</mocDir>
+        <rccDir>build/rcc</rccDir>
+        <uiDir>build/ui</uiDir>
       </qt>
       <compileType>
         <cTool>
@@ -153,6 +158,7 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>8</standard>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
