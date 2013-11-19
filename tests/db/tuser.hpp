@@ -29,6 +29,7 @@ public:
 
 public:
     const QkDbFieldString Name;
+    const QkDbFieldString Login;
 };
 
 extern TUser* User;

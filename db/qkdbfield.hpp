@@ -294,6 +294,7 @@ public:
         if (num < mMinValue)
             return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть больше чем '%2'").arg(this->title()).arg(mMinValue)));
         if (num > mMaxValue)
+            if (num > mMaxValue)
             return this->throwNow(QkError(ERRLOC, QCoreApplication::translate("", "Поле '%1' должно быть не более чем '%2'").arg(this->title()).arg(mMaxValue)));
         return QkDbFieldGeneric<TNumber>::checkValue(pValue);
     }

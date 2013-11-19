@@ -24,7 +24,6 @@ int main(int argc, char** argv)
     QkDbRow row = User->newRow();
     row.save(); // sync? save, throw or false
     row.save([](const QkError& pErr, bool pRv) {
-
     }); // async, save, return error as param
 
     return app.exec();
