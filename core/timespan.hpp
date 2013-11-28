@@ -20,16 +20,16 @@ public:
     {
     }
 
-    TimeSpan(quint64 pTotalMsec)
+    TimeSpan(qint64 pTotalMsec)
         : mTotalMsec(pTotalMsec)
     {
     }
 
 public:
-    quint64 totalMsec() const { return mTotalMsec; }
+    qint64 totalMsec() const { return mTotalMsec; }
 
 private:
-    quint64 mTotalMsec = -1;
+    qint64 mTotalMsec = -1;
 };
 
 }

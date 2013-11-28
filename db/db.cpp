@@ -1,4 +1,5 @@
 #include <QThreadStorage>
+#include <QUuid>
 #include <QStringList>
 #include "db.hpp"
 #include "table.hpp"
@@ -34,7 +35,8 @@ void Db::init()
 
 void Db::migrate()
 {
-    drv()->migrateDb(this);
+    Driver* d = drv();
+    d->migrateDb(this);
 }
 
 void Db::addTable(ITable *pTable)
@@ -100,6 +102,32 @@ void Db::setupConnection(const QString& pConnectionString)
     if (mPoolSize > 100 || mPoolSize == 0) mPoolSize = 10;
 }
 
+thread_local Driver* mThreadDriver = 0;
+
+Driver* Db::drv()
+{
+    if (!mThreadDriver)
+    {
+        if (mDriverName == "mysql")
+        {
+            mThreadDriver = new DriverMySql(mHostName, mPort, mDbName, mUserName, mPassword, mConnectionOptions);
+            mThreadDriver->connect();
+        }
+        else
+        {
+            throw Error(ERRLOC, TR("Драйвер '%1' не поддерживается системой").arg(mDriverName), TR("Поддерживаемые драйвера: mysql"));
+        }
+    }
+    if (!mThreadDriver->checkConnection())
+    {
+        mThreadDriver->disconnect();
+        mThreadDriver->connect();
+    }
+    if (mThreadDriver->inTransaction()) mThreadDriver->rollback();
+    return mThreadDriver;
+}
+
+/*
 Driver* Db::drv()
 {
     QThreadStorage<Driver*> data;
@@ -109,7 +137,7 @@ Driver* Db::drv()
         if (mDriverName == "mysql")
         {
             drv = new DriverMySql(mHostName, mPort, mDbName, mUserName, mPassword, mConnectionOptions);
-            drv->connect();
+//            drv->connect();
         }
         else
         {
@@ -117,7 +145,7 @@ Driver* Db::drv()
         }
         data.setLocalData(drv);
     }
-    if (!data.localData()->checkConnection())
+/*    if (!data.localData()->checkConnection())
     {
         data.localData()->disconnect();
         data.localData()->connect();
@@ -125,6 +153,7 @@ Driver* Db::drv()
     if (data.localData()->inTransaction()) data.localData()->rollback();
     return data.localData();
 }
+*/
 
 }
 }

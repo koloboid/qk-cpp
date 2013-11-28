@@ -13,16 +13,6 @@ CONFIG += staticlib
 INCLUDEPATH += ../../
 QMAKE_CXXFLAGS += -std=c++0x -Wall
 
-SOURCES += \
-    rpcserver.cpp \
-    irpchandler.cpp \
-    httpcontext.cpp
-
-HEADERS += \
-    rpcserver.hpp \
-    irpchandler.hpp \
-    httpcontext.hpp
-
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib
@@ -31,3 +21,21 @@ unix:!symbian {
     }
     INSTALLS += target
 }
+
+HEADERS += \
+    server.hpp \
+    context.hpp \
+    session.hpp \
+    handler.hpp \
+    sessionstorage.hpp \
+    sessionstoragememory.hpp \
+    transport.hpp
+
+SOURCES += \
+    server.cpp \
+    context.cpp \
+    session.cpp \
+    handler.cpp \
+    sessionstorage.cpp \
+    sessionstoragememory.cpp \
+    transport.cpp

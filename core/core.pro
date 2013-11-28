@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       -= gui
-QT       += network
+QT       += network xml
 
 TARGET = qk.core
 TEMPLATE = lib
@@ -26,7 +26,12 @@ SOURCES += \
     enumitem.cpp \
     enum.cpp \
     consoledevice.cpp \
-    config.cpp
+    config.cpp \
+    qkapplication.cpp \
+    config.unix.cpp \
+    formatterjson.cpp \
+    formatterxml.cpp \
+    formatter.cpp
 
 HEADERS += \
     valref.hpp \
@@ -44,7 +49,11 @@ HEADERS += \
     consoledevice.hpp \
     config.hpp \
     blockqueue.hpp \
-    blob.hpp
+    blob.hpp \
+    qkapplication.hpp \
+    formatterjson.hpp \
+    formatterxml.hpp \
+    formatter.hpp
 
 unix:!symbian {
     maemo5 {

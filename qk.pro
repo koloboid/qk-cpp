@@ -5,4 +5,5 @@ SUBDIRS += \
     db \
     mod \
     rpc \
-    dbrpc
+    dbrpc \
+    rpchttp

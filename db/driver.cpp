@@ -1,3 +1,4 @@
+#include <QUuid>
 #include "driver.hpp"
 #include "table.hpp"
 #include "db.hpp"

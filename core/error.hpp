@@ -41,7 +41,7 @@ public:
     QString details() const { return mDetails; }
     QString location() const { return mLocation; }
     QString backtrace() const { return mBacktrace; }
-    QString toString() const { return QString("Error at %1. Message: %2. Details: %3").arg(mLocation).arg(mMessage).arg(mDetails); }
+    QString toString() const { return QString("%2.\n%1\n%3").arg(mLocation).arg(mMessage).arg(mDetails); }
 
 private:
     QString mMessage;

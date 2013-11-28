@@ -42,16 +42,6 @@ bool Config::processCmdLine(const QStringList& pArgs, bool pHandleHelp, bool pHa
     {
         QString key = pArgs[i];
         QString propname = "";
-        if (pHandleHelp && (key == "--help" || key == "-h"))
-        {
-            printHelp();
-            return true;
-        }
-        if (pHandleVersion && (key == "--version" || key == "-V"))
-        {
-            printVersion();
-            return true;
-        }
         if (key.startsWith("--"))
         {
             propname = key.mid(2);
@@ -87,6 +77,16 @@ bool Config::processCmdLine(const QStringList& pArgs, bool pHandleHelp, bool pHa
         {
             mLog.warn("Command line key '%1' is unknown. See --help for usage.").arg(key);
         }
+    }
+    if (pHandleHelp && help())
+    {
+        printHelp();
+        return true;
+    }
+    if (pHandleVersion && version())
+    {
+        printVersion();
+        return true;
     }
     return false;
 }
@@ -163,8 +163,6 @@ QString Config::printHelp(QIODevice* pOutput)
             help += formatHelpProperty(name, maxsz, mShortCut[name], mDescriptions[name], prop.typeName(), mDefaults[name]);
         }
     }
-    help += formatHelpProperty("help", maxsz, "-h", "This help page", "", "");
-    help += formatHelpProperty("version", maxsz, "-V", "Application version", "", "");
     help += appHelp() + "\n";
     if (pOutput)
     {
@@ -259,6 +257,15 @@ QString Config::saveJSON(const QString& pFileName)
         }
     }
     return rv;
+}
+
+void Config::loadFile(const QString& pFileName)
+{
+    if (QFile::exists(pFileName))
+    {
+        log()->info("Loading config from %1").arg(pFileName);
+        loadJSON(pFileName);
+    }
 }
 
 }

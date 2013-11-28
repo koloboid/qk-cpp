@@ -13,11 +13,9 @@ CONFIG += staticlib
 INCLUDEPATH += ../../
 QMAKE_CXXFLAGS += -std=c++0x -Wall
 
-SOURCES += \
-    dbtablehandler.cpp
+SOURCES +=
 
-HEADERS += \
-    dbtablehandler.hpp
+HEADERS +=
 
 unix:!symbian {
     maemo5 {

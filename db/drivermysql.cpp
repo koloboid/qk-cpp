@@ -1,3 +1,4 @@
+#include <QUuid>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlField>

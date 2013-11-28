@@ -99,6 +99,8 @@ public:
         { return append(LogLevel::Error, pMessage, pLocation); }
     LogItem error(const Error& pError)
         { return append(LogLevel::Error, pError.message(), pError.location()).details(pError.details()).backtrace(pError.backtrace()); }
+    LogItem error(const std::exception& pError)
+        { return append(LogLevel::Error, pError.what(), "std::exception").backtrace(LogBase::getBacktrace()); }
     LogItem fatal(const QString& pMessage, const QString& pLocation = "")
         { return append(LogLevel::Fatality, pMessage, pLocation); }
 
@@ -120,7 +122,7 @@ private:
 
 Log* log();
 
-#define LogScope(pComment) LogScopeClass scope__LINE__(qkLog(), __PRETTY_FUNCTION__, pComment);
+#define LogScope(pComment) LogScopeClass scope__LINE__(log(), __PRETTY_FUNCTION__, pComment);
 #define LogScopeOwn(pLog, pComment) LogScopeClass scope__LINE__(pLog, __PRETTY_FUNCTION__, pComment);
 
 class LogScopeClass
