@@ -15,7 +15,7 @@ public:
     QkApplication(int& pArgc, char** pArgv, const QString& pAppName, const QString& pCompanyName);
 
 public:
-    int exec();
+    virtual int exec();
     virtual bool notify(QObject* pDest, QEvent* pE) override;
 
 signals:

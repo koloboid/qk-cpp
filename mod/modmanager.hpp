@@ -23,6 +23,7 @@ private:
 template<class TModule, bool pEnabled>
 TModule* ModManager::createModule()
 {
+    static_assert(std::is_base_of<Qk::Mod::CTimeModule, TModule>::value, "TModule must be derived from Qk::Mod::CTimeModule");
     if (pEnabled)
     {
         TModule* m = new TModule();
