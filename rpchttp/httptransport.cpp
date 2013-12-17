@@ -58,7 +58,6 @@ void HttpTransport::onRequestReady(HttpServerRequest& pRequest, HttpServerRespon
     {
         HttpContext* ctx = new HttpContext(&pRequest, &pResp);
         connect(&pRequest, &HttpServerRequest::end, [this, ctx] {
-            ctx->ready();
             emit onRequest(this, ctx);
         });
     }

@@ -22,7 +22,6 @@ HttpContext::HttpContext(HttpServerRequest* pReq, HttpServerResponse* pResp)
 
 HttpContext::~HttpContext()
 {
-    if (mOut) delete mOut;
 }
 
 QUuid HttpContext::sessionId()
@@ -40,22 +39,6 @@ QString HttpContext::path()
     ASSERTPTR(mReq);
 
     return mReq->url().path();
-}
-
-void HttpContext::ready()
-{
-    // main server thread
-    ASSERTPTR(mReq);
-
-    QString path = mReq->url().path();
-    if (path.endsWith(".xml"))
-    {
-        mOut = new FormatterXml(&mResponseBuffer);
-    }
-    else
-    {
-        mOut = new FormatterJson(&mResponseBuffer);
-    }
 }
 
 QNetworkCookie HttpContext::getCookie(const QString& pCookieName)
@@ -76,7 +59,15 @@ QNetworkCookie HttpContext::getCookie(const QString& pCookieName)
 void HttpContext::finish()
 {
     // handler thread
+    Context::finish();
     emit onFinish();
+}
+
+void HttpContext::start()
+{
+    ASSERTPTR(mReq);
+
+    Context::start();
 }
 
 void HttpContext::sendResponse()

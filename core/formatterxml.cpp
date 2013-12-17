@@ -3,7 +3,7 @@
 
 namespace Qk {
 namespace Core {
-
+/*
 FormatterXml::FormatterXml(QIODevice* pOutDevice)
     : mOut(pOutDevice)
 {
@@ -69,6 +69,6 @@ Formatter& FormatterXml::write(const QString& pName, const QVariant& pValue)
     }
     return *this;
 }
-
+*/
 }
 }

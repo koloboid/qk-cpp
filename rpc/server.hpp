@@ -18,11 +18,15 @@ class Server : public QObject
 {
     Q_OBJECT
 
+    friend class Handler;
+
 public:
     Server(SessionStorage* pSessionStorage = 0);
     virtual ~Server();
 
 public:
+    template<class THandler>
+    void addHandler() { addHandler(new THandler(this)); }
     void addHandler(Handler* pHandler);
     void removeHandler(Handler* pHandler);
     void addTransport(Transport* pTransport);
@@ -37,13 +41,15 @@ protected slots:
     void onRequest(Transport* pTransport, Context* pContext) noexcept;
 
 private:
-    SessionStorage* mSessionStorage;
-    QMap<QString, Handler*> mHandlers;
-    QList<Transport*> mTransport;
-    QThreadPool mThreadPool;
-};
+    void runAsyncRequest(QRunnable* pRun);
 
-Log* rpclog(Log* pParent = 0);
+private:
+    QThreadPool mThreads;
+    SessionStorage* mSessionStorage;
+    QList<QPair<QRegExp, Handler*>> mHandlers;
+    QList<Transport*> mTransport;
+    bool mInitialized = false;
+};
 
 }
 }

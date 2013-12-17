@@ -4,7 +4,7 @@
 
 namespace Qk {
 namespace Core {
-
+/*
 class FormatterXml : public Formatter
 {
 public:
@@ -25,6 +25,6 @@ public:
 private:
     QIODevice* mOut;
 };
-
+*/
 }
 }

@@ -1,3 +1,5 @@
+#include <qk/core/formatterjson.hpp>
+
 #include "context.hpp"
 #include "session.hpp"
 
@@ -9,10 +11,15 @@ Context::Context()
 
 }
 
+Context::~Context()
+{
+    if (mOut) delete mOut;
+}
+
 void Context::respondError(const QString& pError, quint32 pStatusCode)
 {
     mStatusCode = pStatusCode;
-    mRepondErrors.append(pError);
+    mRespondErrors.append(pError);
 }
 
 void Context::setSession(Session* pSession)
@@ -44,6 +51,34 @@ QString Context::statusText() const
         return "Information";
     }
     return "Unknown";
+}
+
+void Context::finish()
+{
+    if (mRespondErrors.size() > 0)
+    {
+        out()->startArray("errorList");
+        foreach (const QString& err, mRespondErrors)
+        {
+            out()->write("", err);
+        }
+    }
+    out()->flush();
+}
+
+void Context::start()
+{
+    // main server thread
+
+    mResponseBuffer.open(QIODevice::WriteOnly);
+    if (path().endsWith(".xml"))
+    {
+        //mOut = new FormatterXml(&mResponseBuffer);
+    }
+    else
+    {
+        mOut = new FormatterJson(&mResponseBuffer);
+    }
 }
 
 }

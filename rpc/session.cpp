@@ -11,7 +11,6 @@ Session::Session()
 
 Session::~Session()
 {
-    LogScope("");
 }
 
 void Session::abandon()

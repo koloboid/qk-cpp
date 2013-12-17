@@ -7,6 +7,7 @@ namespace Core {
 FormatterJson::FormatterJson(QIODevice* pOutDevice)
     : mOut(pOutDevice)
 {
+    ASSERTPTR(mOut);
     mOut->write("{");
 }
 
@@ -17,39 +18,66 @@ QVariantMap FormatterJson::read()
 
 Formatter& FormatterJson::startObject(const QString& pName)
 {
-    mOut->write("\"");
-    mOut->write(pName.toUtf8());
-    mOut->write("\"");
-    mOut->write(":{");
+    writeHead(pName);
+    mOut->write("{");
+    mState = Start;
+    mToFinishBrace += "}";
     return *this;
 }
 
 Formatter& FormatterJson::endObject()
 {
-    mOut->write("}");
+    if (mToFinishBrace.size() > 0 && mToFinishBrace.endsWith("}"))
+    {
+        mOut->write("}");
+        mToFinishBrace = mToFinishBrace.left(mToFinishBrace.size() - 1);
+    }
     return *this;
 }
 
 Formatter& FormatterJson::startArray(const QString& pName)
 {
-    mOut->write("\"");
-    mOut->write(pName.toUtf8());
-    mOut->write("\"");
-    mOut->write(":[");
+    writeHead(pName);
+    mOut->write("[");
+    mState = Start;
+    mToFinishBrace += "]";
     return *this;
 }
 
 Formatter& FormatterJson::endArray()
 {
-    mOut->write("]");
+    if (mToFinishBrace.size() > 0 && mToFinishBrace.endsWith("]"))
+    {
+        mOut->write("]");
+        mToFinishBrace = mToFinishBrace.left(mToFinishBrace.size() - 1);
+    }
+    return *this;
+}
+
+Formatter& FormatterJson::write(const QString& pName, const QString& pValue)
+{
+    writeHead(pName);
+    mOut->write("\"");
+    QString val = pValue;
+    mOut->write(val.replace("\n", "\\n").toUtf8());
+    mOut->write("\"");
+    return *this;
+}
+
+Formatter& FormatterJson::write(const QString& pName, const char* pValue)
+{
+    ASSERTPTR(pValue);
+
+    writeHead(pName);
+    mOut->write("\"");
+    mOut->write(QString(pValue).replace("\n", "\\n").toUtf8());
+    mOut->write("\"");
     return *this;
 }
 
 Formatter& FormatterJson::write(const QString& pName, const QVariant& pValue)
 {
-    mOut->write("\"");
-    mOut->write(pName.toUtf8());
-    mOut->write("\":");
+    writeHead(pName);
     switch (pValue.type())
     {
         case QVariant::Bool:
@@ -63,11 +91,30 @@ Formatter& FormatterJson::write(const QString& pName, const QVariant& pValue)
             break;
         default:
             mOut->write("\"");
-            mOut->write(pValue.toString().toUtf8());
+            mOut->write(pValue.toString().replace("\n", "\\n").toUtf8());
             mOut->write("\"");
             break;
     }
     return *this;
+}
+
+QIODevice* FormatterJson::flush()
+{
+    mOut->write(mToFinishBrace.toUtf8());
+    mOut->write("}");
+    return mOut;
+}
+
+void FormatterJson::writeHead(const QString& pName)
+{
+    if (mState == NeedComma) mOut->write(",");
+    if (mToFinishBrace.size() == 0 || mToFinishBrace.endsWith("}"))
+    {
+        mOut->write("\"");
+        mOut->write(pName.toUtf8());
+        mOut->write("\":");
+    }
+    mState = NeedComma;
 }
 
 }

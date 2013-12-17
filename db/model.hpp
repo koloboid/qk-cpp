@@ -6,6 +6,7 @@
 #include "field.hpp"
 #include "value.hpp"
 #include "query.hpp"
+#include "db.hpp"
 
 using namespace Qk::Core;
 
@@ -41,9 +42,10 @@ class Model : public IModel
 {
 public:
     static Table<TModel> TableSchema;
-    static inline Query<TModel> select(Driver* pDriver = 0, QList<IField*> pFields = QList<IField*>())
+    static Query<TModel> select(Driver* pDriver = 0, QList<IField*> pFields = QList<IField*>())
     {
-        return Query<TModel>(&TableSchema, pFields, pDriver);
+        Driver* drv = pDriver ? pDriver : TableSchema.db()->drv();
+        return Query<TModel>(&TableSchema, pFields, drv);
     }
     static inline void initTable()
     {

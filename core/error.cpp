@@ -11,6 +11,11 @@ Error::Error(const QString& pLocation, const QString& pMessage, const QString& p
 {
 }
 
+Error::Error(const std::exception& pEx)
+    : mMessage(pEx.what()), mLocation("std::exception"), mDetails(), mBacktrace(LogBase::getBacktrace())
+{
+
+}
 
 }
 }

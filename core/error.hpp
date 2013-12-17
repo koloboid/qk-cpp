@@ -27,10 +27,8 @@ namespace Core
 class QKCORE_EXPORT Error
 {
 public:
-    Error()
-    {
-    }
     Error(const QString& pLocation, const QString& pMessage, const QString& pDetails = QString());
+    Error(const std::exception& pEx);
 
     virtual ~Error()
     {

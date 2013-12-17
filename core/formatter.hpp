@@ -25,6 +25,8 @@ public:
     virtual Formatter& startArray(const QString& pName) = 0;
     virtual Formatter& endArray() = 0;
     virtual Formatter& write(const QString& pName, const QVariant& pValue) = 0;
+    virtual Formatter& write(const QString& pName, const QString& pValue) = 0;
+    virtual Formatter& write(const QString& pName, const char* pValue) = 0;
     template<class T>
     Formatter& write(const QString &pName, const T& pValue) { return write(pName, QVariant::fromValue<T>(pValue)); }
 

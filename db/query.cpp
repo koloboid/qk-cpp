@@ -11,6 +11,9 @@ namespace Db
 IQuery::IQuery(ITable *pTable, QList<IField *> pFields, Driver* pDriver)
     : mTable(pTable), mFields(pFields), mDriver(pDriver)
 {
+    ASSERTPTR(pTable);
+    ASSERTPTR(pDriver);
+
     if (mFields.size() == 0)
     {
         mFields = pTable->fields().values();
