@@ -14,6 +14,8 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Rpc {
 
+typedef std::function<void(Context*)> HandlerFunc;
+
 class Server : public QObject
 {
     Q_OBJECT
@@ -32,6 +34,12 @@ public:
     void addTransport(Transport* pTransport);
     void removeTransport(Transport* pTransport);
 
+    template<class TThis>
+    void addSyncHandler(const QRegExp& pPath, TThis* pThis, void(TThis::*pFunc)(Context* pCtx))
+    {
+        mHandlerList.append(pFunc);
+    }
+
     void init();
     void run();
     void pause();
@@ -49,6 +57,8 @@ private:
     QList<QPair<QRegExp, Handler*>> mHandlers;
     QList<Transport*> mTransport;
     bool mInitialized = false;
+
+    QList<HandlerFunc> mHandlerList;
 };
 
 }

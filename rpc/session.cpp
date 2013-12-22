@@ -15,7 +15,7 @@ Session::~Session()
 
 void Session::abandon()
 {
-    log()->info(tr("Сессия прервана. Дата/время последнего запроса: %1").arg(mLastRequestTime.toString()));
+    log()->info(tr("Сессия устарела. Дата/время последнего запроса: %1").arg(mLastRequestTime.toString()));
 }
 
 void Session::requestStart(Context*)
