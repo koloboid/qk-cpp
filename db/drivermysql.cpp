@@ -9,7 +9,7 @@
 #include "table.hpp"
 #include "field.hpp"
 #include "query.hpp"
-#include "model.hpp"
+#include "table.hpp"
 #include "db.hpp"
 
 namespace Qk
@@ -74,22 +74,21 @@ bool DriverMySql::checkConnection()
     return q.next();
 }
 
-QList<RModel> DriverMySql::select(const IQuery *pQuery)
+QList<IRow> DriverMySql::select(const IQuery& pQuery)
 {
-    ASSERTPTR(pQuery);
     QString cols = "";
     QString order = "";
     QString limit = "";
-    if (pQuery->limitOffset() != 0 && pQuery->limitCount() != 0)
+    if (pQuery.limitOffset() != 0 && pQuery.limitCount() != 0)
     {
-        limit = QString("LIMIT %1,%2").arg(pQuery->limitOffset()).arg(pQuery->limitCount());
+        limit = QString("LIMIT %1,%2").arg(pQuery.limitOffset()).arg(pQuery.limitCount());
     }
-    else if (pQuery->limitCount() > 0)
+    else if (pQuery.limitCount() > 0)
     {
-        limit = QString("LIMIT %1").arg(pQuery->limitCount());
+        limit = QString("LIMIT %1").arg(pQuery.limitCount());
     }
 
-    foreach (IField* fld, pQuery->fields())
+    foreach (IField* fld, pQuery.fields())
     {
         cols.append(fieldName(fld, true) + ",");
     }
@@ -97,9 +96,9 @@ QList<RModel> DriverMySql::select(const IQuery *pQuery)
     QString joins = "";//JoinsToSql(pQuery, cols);
     QString sql = QString("select %1 from `%2` %3 %4 %5 %6")
         .arg(cols)
-        .arg(pQuery->table()->name())
+        .arg(pQuery.table()->name())
         .arg(joins)
-        .arg(conditionToSql(pQuery->condition()))
+        .arg(conditionToSql(pQuery.condition()))
         .arg(order)
         .arg(limit);
 
@@ -136,9 +135,9 @@ QString DriverMySql::sqlValue(QVariant pValue, const IField* pField)
     QString val = "";
     if (pField->linkedTo())
     {
-        RModel mod = pField->linkedTo()->rowFromVariant(pValue);
+        IRow mod = pField->linkedTo()->rowFromVariant(pValue);
         if (!mod) return "NULL";
-        return sqlValue(mod->table()->primaryField()->get(mod), mod->table()->primaryField());
+        return sqlValue(mod.table()->primaryField()->get(mod), mod.table()->primaryField());
     }
     else
     {
@@ -190,44 +189,44 @@ QString DriverMySql::operatorToSql(Condition::EOperator pOperator)
     }
 }
 
-QList<RModel> DriverMySql::readQueryResult(const IQuery *pQuery)
+QList<IRow> DriverMySql::readQueryResult(const IQuery& pQuery)
 {
-    QList<RModel> rows;
+    QList<IRow> rows;
     if (mCurrentQuery.isActive() && mCurrentQuery.isSelect())
     {
         while (mCurrentQuery.next())
         {
-            RModel row = pQuery->table()->newRow();
-            row->load(mCurrentQuery.record());
+            IRow row = pQuery.table()->newRow();
+            row.load(mCurrentQuery.record());
             rows.append(row);
         }
     }
     return rows;
 }
 
-void DriverMySql::deleteRow(const IModel*)
+void DriverMySql::deleteRow(const IRow&)
 {
     throw ErrorNotImplemented(ERRLOC);
 }
 
-QVariant DriverMySql::insertRow(const IModel* pRow)
+QVariant DriverMySql::insertRow(const IRow& pRow)
 {
     QString sql = "insert into %1 (%2) values (%3)";
     QString cols = "";
     QString vals = "";
-    foreach (IField* fld, pRow->table()->fields())
+    foreach (IField* fld, pRow.table()->fields())
     {
-        if (!fld->flags().hasAutoIncrement())
+        if (!(fld->flags() & EFieldFlag::AutoIncrement))
         {
             cols += fieldName(fld) + ",";
-            vals += sqlValue(pRow->get(fld), fld) + ",";
+            vals += sqlValue(pRow.get(fld), fld) + ",";
         }
     }
     cols = cols.left(cols.size() - 1);
     vals = vals.left(vals.size() - 1);
-    sql = sql.arg(pRow->table()->name()).arg(cols).arg(vals);
+    sql = sql.arg(pRow.table()->name()).arg(cols).arg(vals);
     execSql(sql);
-    if (pRow->table()->primaryField()->flags().isAutoIncrement())
+    if (pRow.table()->primaryField()->flags() & EFieldFlag::AutoIncrement)
     {
         QSqlQuery q(mDb);
         if (!q.prepare("select LAST_INSERT_ID()"))
@@ -248,7 +247,7 @@ QVariant DriverMySql::insertRow(const IModel* pRow)
     else return QVariant();
 }
 
-void DriverMySql::updateRow(const IModel*)
+void DriverMySql::updateRow(const IRow&)
 {
     throw ErrorNotImplemented(ERRLOC);
 }
@@ -272,7 +271,7 @@ void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
             .arg(fieldDefinition(pField));
         execSql(code);
     }
-    if (pField->flags().hasCascadeDelete())
+    if (pField->flags() & FieldFlag::CascadeDelete)
     {
         ASSERTPTR(pField->linkedTo());
         QString constrname = pField->name() + pField->linkedTo()->name() + pField->linkedTo()->primaryField()->name();
@@ -325,22 +324,20 @@ void DriverMySql::migrateIndex(const Index* pIndex)
     throw ErrorNotImplemented(ERRLOC);
 }
 
-void DriverMySql::migrateTable(const ITable* pTable)
+void DriverMySql::migrateTable(const ITable& pTable)
 {
-    ASSERTPTR(pTable);
-
-    dblog()->debug(TR("Миграция таблицы '%1'").arg(pTable->name()));
-    QSqlRecord rec = mDb.record(pTable->name());
+    dblog()->debug(TR("Миграция таблицы '%1'").arg(pTable.name()));
+    QSqlRecord rec = mDb.record(pTable.name());
     if (rec.isEmpty())
     {
-        IField* id = pTable->primaryField();
+        IField* id = pTable.primaryField();
         execSql(QString("create table `%1` (%2) ENGINE=%3")
-            .arg(pTable->name())
+            .arg(pTable.name())
             .arg(fieldDefinition(id))
-            .arg(pTable->engine().isEmpty() ? QString("InnoDB") : pTable->engine()));
-        rec = mDb.record(pTable->name());
+            .arg(pTable.engine().isEmpty() ? QString("InnoDB") : pTable.engine()));
+        rec = mDb.record(pTable.name());
     }
-    foreach (IField* fld, pTable->fields().values())
+    foreach (IField* fld, pTable.fields().values())
     {
         migrateField(fld, rec);
     }
@@ -407,8 +404,10 @@ qint64 DriverMySql::execSql(const QString& pSql)
 QString DriverMySql::fieldDefinition(const IField* pField)
 {
     ASSERTPTR(pField);
-    QString def = fieldName(pField) + " " + typeName(pField) + " not null";
-    if (pField->flags().hasAutoIncrement()) def += " AUTO_INCREMENT PRIMARY KEY";
+    QString def = fieldName(pField) + " " + typeName(pField);
+    if (pField->flags() & EFieldFlag::AllowNull) def += " null";
+    else def += " not null";
+    if (pField->flags() & EFieldFlag::AutoIncrement) def += " AUTO_INCREMENT PRIMARY KEY";
     return def;
 }
 
@@ -469,6 +468,13 @@ QString DriverMySql::typeName(const IField* pField)
 QString DriverMySql::escape(const QString& pName)
 {
     return "`" + pName + "`";
+}
+
+void DriverMySql::select(const IQuery& pQuery, Formatter* pFormatter)
+{
+    Q_UNUSED(pQuery)
+    Q_UNUSED(pFormatter)
+    throw Qk::Core::ErrorNotImplemented(ERRLOC);
 }
 
 }

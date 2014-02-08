@@ -10,8 +10,8 @@ namespace Rpc {
 class RpcRunnable : public QRunnable
 {
 public:
-    RpcRunnable(Handler* pHandler, Context* pCtx, int pMethodIndex = -1)
-        : mHandler(pHandler), mContext(pCtx), mMethodIndex(pMethodIndex)
+    RpcRunnable(Handler* pHandler, Context* pCtx)
+        : mHandler(pHandler), mContext(pCtx)
     {
         ASSERTPTR(mHandler);
         ASSERTPTR(mContext);
@@ -23,14 +23,7 @@ public:
         // handler thread
         try
         {
-            if (mMethodIndex >= 0)
-            {
-                mHandler->callMethod(mMethodIndex, mContext);
-            }
-            else
-            {
-                mHandler->processRequest(mContext, false);
-            }
+            mHandler->processRequest(mContext);
         }
         catch (const Error& pErr)
         {
@@ -48,7 +41,42 @@ public:
 private:
     Handler* mHandler = nullptr;
     Context* mContext = nullptr;
-    int mMethodIndex = -1;
+};
+
+class RpcFuncRunnable : public QRunnable
+{
+public:
+    RpcFuncRunnable(const std::function<void(Context*)>& pFunc, Context* pCtx)
+        : mFunc(pFunc), mContext(pCtx)
+    {
+        ASSERTPTR(mFunc);
+        ASSERTPTR(mContext);
+    }
+
+public:
+    virtual void run() override
+    {
+        // handler thread
+        try
+        {
+            mFunc(mContext);
+        }
+        catch (const Error& pErr)
+        {
+            mContext->respondError(pErr);
+            rpclog()->error(pErr);
+        }
+        catch (const std::exception& pStdErr)
+        {
+            mContext->respondError(pStdErr);
+            rpclog()->error(pStdErr);
+        }
+        mContext->finish();
+    }
+
+private:
+    const std::function<void(Context*)>& mFunc;
+    Context* mContext = nullptr;
 };
 
 Handler::Handler(Server* pParent)
@@ -66,11 +94,7 @@ void Handler::init()
         QString tag = mt.tag();
         if (tag == "QKRPC")
         {
-            mSyncMethods[name] = i;
-        }
-        else if (tag == "QKRPCASYNC")
-        {
-            mAsyncMethods[name] = i;
+            mMethods[name] = i;
         }
     }
 }
@@ -79,41 +103,36 @@ void Handler::newSession(Context*)
 {
 }
 
-void Handler::processRequest(Context* pCtx, bool pIsServerThread)
+void Handler::processRequest(Context* pCtx)
 {
     QFileInfo file(pCtx->path());
     QString methodname = file.fileName();
     methodname = methodname.left(methodname.indexOf('.'));
-    int mtidx = mSyncMethods.value(methodname, -1);
+    int mtidx = mMethods.value(methodname, -1);
     if (mtidx >= 0)
     {
-        callMethod(mtidx, pCtx);
+        callMethod(pCtx, mtidx);
     }
     else
     {
-        mtidx = mAsyncMethods.value(methodname, -1);
-        if (mtidx >= 0)
-        {
-            if (pIsServerThread)
-            {
-                RpcRunnable* run = new RpcRunnable(this, pCtx, mtidx);
-                mServer->runAsyncRequest(run);
-            }
-            else
-            {
-                callMethod(mtidx, pCtx);
-            }
-        }
-        else
-        {
-            methodNotFound(methodname, pCtx, pIsServerThread);
-        }
+        methodNotFound(pCtx, methodname);
     }
 }
 
-void Handler::methodNotFound(const QString& pMethodName, Context* pCtx, bool)
+void Handler::methodNotFound(Context* pCtx, const QString& pMethodName)
 {
     pCtx->log()->warn(tr("Метод '%1' не найден в обработчике пути '%2'").arg(pMethodName).arg(pCtx->path()));
+}
+
+void Handler::doAsync(Context* pCtx, const std::function<void(Context*)>& pFunc)
+{
+    if (!pCtx->isServerThread()) pFunc(pCtx);
+    else
+    {
+        RpcFuncRunnable* run = new RpcFuncRunnable(pFunc, pCtx);
+        pCtx->hasAsyncCall(true);
+        mServer->runAsyncRequest(run);
+    }
 }
 
 void Handler::processRequestInternal(Context* pCtx)
@@ -125,12 +144,11 @@ void Handler::processRequestInternal(Context* pCtx)
     }
     else
     {
-        processRequest(pCtx, true);
-        pCtx->finish();
+        processRequest(pCtx);
     }
 }
 
-void Handler::callMethod(int pMethodIndex, Context* pCtx)
+void Handler::callMethod(Context* pCtx, int pMethodIndex)
 {
     QMetaMethod mt = this->metaObject()->method(pMethodIndex);
     if (!mt.invoke(this, Qt::DirectConnection, Q_ARG(Context*, pCtx)))

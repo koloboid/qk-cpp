@@ -2,6 +2,7 @@
 
 #include "db.export.hpp"
 #include <QThread>
+#include <qk/core/formatter.hpp>
 
 namespace Qk
 {
@@ -10,13 +11,12 @@ namespace Db
 
 class Db;
 class ITable;
+class IRow;
 class IField;
 class Index;
-class IModel;
 class Driver;
 class IQuery;
 class Condition;
-typedef QSharedPointer<IModel> RModel;
 
 class QKDB_EXPORT Driver
 {
@@ -34,16 +34,17 @@ public:
     virtual void rollback() = 0;
     virtual bool inTransaction() const = 0;
 
-    virtual QList<RModel> select(const IQuery* pQuery) = 0;
+    virtual QList<IRow> select(const IQuery& pQuery) = 0;
+    virtual void select(const IQuery& pQuery, Qk::Core::Formatter* pFormatter) = 0;
 
-    virtual QVariant insertRow(const IModel* pRow) = 0;
-    virtual void updateRow(const IModel* pRow) = 0;
-    virtual void deleteRow(const IModel* pRow) = 0;
+    virtual QVariant insertRow(const IRow& pRow) = 0;
+    virtual void updateRow(const IRow& pRow) = 0;
+    virtual void deleteRow(const IRow& pRow) = 0;
 
-    virtual void migrateDb(const Db* pSchema);
+    virtual void migrateDb(const Db& pSchema);
 
 protected:
-    virtual void migrateTable(const ITable* pTable) = 0;
+    virtual void migrateTable(const ITable& pTable) = 0;
     QString connectionName();
 };
 

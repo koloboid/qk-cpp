@@ -98,7 +98,7 @@ void LogBase::stop()
 
 void LogBase::addStdLoggers(bool pUseColor)
 {
-    addLogger(new LoggerTextIO(ConsoleDevice::stdOut(), ~LogLevel::MaskErrors, pUseColor));
+    addLogger(new LoggerTextIO(ConsoleDevice::stdOut(), (ELogLevel)~LogLevel::MaskErrors, pUseColor));
     addLogger(new LoggerTextIO(ConsoleDevice::stdErr(), LogLevel::MaskErrors, pUseColor));
 }
 

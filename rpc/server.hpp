@@ -14,8 +14,6 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Rpc {
 
-typedef std::function<void(Context*)> HandlerFunc;
-
 class Server : public QObject
 {
     Q_OBJECT
@@ -27,18 +25,35 @@ public:
     virtual ~Server();
 
 public:
-    template<class THandler>
-    void addHandler() { addHandler(new THandler(this)); }
-    void addHandler(Handler* pHandler);
-    void removeHandler(Handler* pHandler);
     void addTransport(Transport* pTransport);
     void removeTransport(Transport* pTransport);
 
+    template<class THandler>
+    void addHandler() { addHandler(new THandler(this)); }
+    void addHandler(Handler* pHandler);
     template<class TThis>
-    void addSyncHandler(const QRegExp& pPath, TThis* pThis, void(TThis::*pFunc)(Context* pCtx))
+    void addSyncHandler(const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc)
     {
-        mHandlerList.append(pFunc);
+        HandlerFunctor<TThis>* hdl = new HandlerFunctor<TThis>(this, pPath, pThis, pProc, false);
+        mHandlerList.append(hdl);
     }
+    void addSyncHandler(const QRegExp& pPath, const std::function<void(Context*)>& pFunc)
+    {
+        HandlerStdFunctor* hdl = new HandlerStdFunctor(this, pPath, pFunc, false);
+        mHandlerList.append(hdl);
+    }
+    template<class TThis>
+    void addAsyncHandler(const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc)
+    {
+        HandlerFunctor<TThis>* hdl = new HandlerFunctor<TThis>(this, pPath, pThis, pProc, true);
+        mHandlerList.append(hdl);
+    }
+    void addAsyncHandler(const QRegExp& pPath, const std::function<void(Context*)>& pFunc)
+    {
+        HandlerStdFunctor* hdl = new HandlerStdFunctor(this, pPath, pFunc, true);
+        mHandlerList.append(hdl);
+    }
+    void removeHandler(Handler* pHandler);
 
     void init();
     void run();
@@ -58,7 +73,7 @@ private:
     QList<Transport*> mTransport;
     bool mInitialized = false;
 
-    QList<HandlerFunc> mHandlerList;
+    QList<Handler*> mHandlerList;
 };
 
 }

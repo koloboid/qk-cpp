@@ -3,7 +3,8 @@
 namespace Qk {
 namespace Rpc {
 
-Transport::Transport()
+Transport::Transport(Server* pServer)
+    : mRpcServer(pServer)
 {
 }
 

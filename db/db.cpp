@@ -36,7 +36,7 @@ void Db::init()
 void Db::migrate()
 {
     Driver* d = drv();
-    d->migrateDb(this);
+    d->migrateDb(*this);
 }
 
 void Db::addTable(ITable *pTable)
@@ -49,7 +49,6 @@ void Db::addTable(ITable *pTable)
 
     dblog()->debug(TR("Добавление таблицы '%1'").arg(tableName));
     mTables[tableName] = pTable;
-    pTable->mDb = this;
 }
 
 void Db::setupConnection(const QString& pConnectionString)
@@ -126,34 +125,6 @@ Driver* Db::drv()
     if (mThreadDriver->inTransaction()) mThreadDriver->rollback();
     return mThreadDriver;
 }
-
-/*
-Driver* Db::drv()
-{
-    QThreadStorage<Driver*> data;
-    if (!data.hasLocalData())
-    {
-        Driver* drv = 0;
-        if (mDriverName == "mysql")
-        {
-            drv = new DriverMySql(mHostName, mPort, mDbName, mUserName, mPassword, mConnectionOptions);
-//            drv->connect();
-        }
-        else
-        {
-            throw Error(ERRLOC, TR("Драйвер '%1' не поддерживается системой").arg(mDriverName), TR("Поддерживаемые драйвера: mysql"));
-        }
-        data.setLocalData(drv);
-    }
-/*    if (!data.localData()->checkConnection())
-    {
-        data.localData()->disconnect();
-        data.localData()->connect();
-    }
-    if (data.localData()->inTransaction()) data.localData()->rollback();
-    return data.localData();
-}
-*/
 
 }
 }

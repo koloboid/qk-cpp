@@ -10,8 +10,8 @@ using namespace Tufao;
 namespace Qk {
 namespace Rpc {
 
-HttpTransport::HttpTransport(QHostAddress pListenAddr, quint16 pPOrt)
-    : mServer(0), mListenAddr(pListenAddr), mListenPort(pPOrt)
+HttpTransport::HttpTransport(Server* pRpcServer, QHostAddress pListenAddr, quint16 pPOrt)
+    : Transport(pRpcServer), mServer(0), mListenAddr(pListenAddr), mListenPort(pPOrt)
 {
 }
 
@@ -56,7 +56,7 @@ void HttpTransport::onRequestReady(HttpServerRequest& pRequest, HttpServerRespon
 {
     if (!mIsPaused)
     {
-        HttpContext* ctx = new HttpContext(&pRequest, &pResp);
+        HttpContext* ctx = new HttpContext(server(), &pRequest, &pResp);
         connect(&pRequest, &HttpServerRequest::end, [this, ctx] {
             emit onRequest(this, ctx);
         });

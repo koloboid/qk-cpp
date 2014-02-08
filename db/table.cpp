@@ -7,10 +7,11 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Db {
 
-ITable::ITable(const QString& pName)
-    : mName(pName)
+ITable::ITable(const QString& pName, Db* pDb)
+    : mName(pName), mDb(pDb)
 {
     ASSERTSTR(pName, 1, 64);
+    ASSERTPTR(pDb);
 }
 
 ITable::~ITable()
@@ -30,7 +31,7 @@ void ITable::init()
 {
     foreach (IField* fld, mFields.values())
     {
-        if (fld->flags().hasPrimary())
+        if (fld->flags() & FieldFlag::Primary)
         {
             if (mPrimaryField)
             {

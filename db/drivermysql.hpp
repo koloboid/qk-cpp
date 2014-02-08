@@ -27,21 +27,22 @@ public:
     virtual void rollback() override;
     virtual bool inTransaction() const { return mInTransaction; }
 
-    virtual QList<RModel> select(const IQuery* pQuery);
+    virtual QList<IRow> select(const IQuery& pQuery) override;
+    virtual void select(const IQuery& pQuery, Core::Formatter* pFormatter) override;
 
-    virtual QVariant insertRow(const IModel* pRow) override;
-    virtual void updateRow(const IModel* pRow) override;
-    virtual void deleteRow(const IModel* pRow) override;
+    virtual QVariant insertRow(const IRow& pRow) override;
+    virtual void updateRow(const IRow& pRow) override;
+    virtual void deleteRow(const IRow& pRow) override;
 
 protected:
-    virtual void migrateTable(const ITable* pTable) override;
+    virtual void migrateTable(const ITable& pTable) override;
     virtual void migrateField(const IField* pField, QSqlRecord pDbRecord);
     virtual void migrateIndex(const Index* pIndex);
     qint64 execSql(const QString& pSql);
     virtual void doQuery(const QString& pSql);
     virtual void doQuery(QSqlQuery pQuery);
     bool hasRecord();
-    QList<RModel> readQueryResult(const IQuery* pQuery);
+    QList<IRow> readQueryResult(const IQuery& pQuery);
 
     static QString fieldDefinition(const IField* pField);
     static QString typeName(const IField* pField);

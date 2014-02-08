@@ -12,8 +12,8 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Rpc {
 
-HttpContext::HttpContext(HttpServerRequest* pReq, HttpServerResponse* pResp)
-    : mReq(pReq), mResp(pResp)
+HttpContext::HttpContext(Server* pServer, HttpServerRequest* pReq, HttpServerResponse* pResp)
+    : Context(pServer), mReq(pReq), mResp(pResp)
 {
     connect(this, &HttpContext::onFinish, this, &HttpContext::sendResponse);
     connect(pReq, &HttpServerRequest::destroyed, this, &HttpContext::connectionTerminated);

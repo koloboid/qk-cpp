@@ -1,39 +1,47 @@
-#include "core.export.hpp"
-#include "enumitem.hpp"
+#pragma once
 
-#ifdef ENUMIMPL
+#include <QObject>
+#include <QMetaEnum>
 
-#undef EnumBegin
-#undef Enum
-#undef EnumEnd
+namespace Qk
+{
+namespace Core
+{
+
+class Enum : public QObject
+{
+    Q_OBJECT
+private:
+    Enum()
+    {
+    }
+};
+
+#define QKENUM(pName) Q_ENUMS(pName) \
+private:\
+    static QMetaEnum getMetaEnum() { return staticMetaObject.enumerator(staticMetaObject.indexOfEnumerator(#pName)); } \
+public: \
+    static QString getName(pName pVal, const QString& pDefault = QString()) { auto t = getMetaEnum().valueToKey(pVal); return t ? t : pDefault; }\
+    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return tr(getName(pVal, pDefault).toUtf8().data()); }\
+    static pName getValue(const QString& pVal, pName pDefault = pName()) { bool ok; pName t = (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), &ok); return ok ? t : pDefault; }\
+    static pName getValue(const QString& pVal, bool* pOk) { return (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), pOk); }\
+    static QList<pName> values() { QList<pName> list; QMetaEnum e = getMetaEnum(); for (int i = 0; i < e.keyCount(); i++) list << (pName)e.value(i); return list; }
+
+#define QKFLAG(pName) Q_FLAGS(pName) \
+private:\
+    static QMetaEnum getMetaEnum() { return staticMetaObject.enumerator(staticMetaObject.indexOfEnumerator(#pName)); } \
+public: \
+    static QString getName(pName pVal, const QString& pDefault = QString()) { auto t = getMetaEnum().valueToKey(pVal); return t ? t : pDefault; }\
+    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return tr(getName(pVal, pDefault).toUtf8().data()); }\
+    static pName getValue(const QString& pVal, pName pDefault = pName()) { bool ok; pName t = (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), &ok); return ok ? t : pDefault; }\
+    static pName getValue(const QString& pVal, bool* pOk) { return (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), pOk); }\
+    static QList<pName> values() { QList<pName> list; QMetaEnum e = getMetaEnum(); for (int i = 0; i < e.keyCount(); i++) list << (pName)e.value(i); return list; }
+
+#define QKENUMDECL(pTypeName, pNewType) \
+    typedef pTypeName pNewType; \
+    inline pTypeName operator|(pTypeName p1, pTypeName p2) { return (pTypeName)((int)p1 | (int)p2); }
 
 
-#define EnumBegin(pName, pBaseType, pDefault) \
-    template<> QMap<pBaseType, Qk::Core::EnumDesc<pName>*> Qk::Core::EnumItem<pName, pBaseType>::mDescMap = QMap<pBaseType, Qk::Core::EnumDesc<pName>*>();
 
-#define Enum(pType, pName, pValue, pTitle, pDescr) constexpr pType::BaseType pType::pName; \
-    Qk::Core::EnumDesc<pType> pType::__desc##pName(pValue, #pName, pTitle, pDescr);
-
-#define EnumEnd
-
-#else
-
-#undef EnumBegin
-#undef Enum
-#undef EnumEnd
-
-
-#define EnumBegin(pName, pBaseType, pDefault) class pName : public Qk::Core::EnumItem<pName, pBaseType> \
-    { public: pName() : EnumItem(pDefault) { } \
-    pName(BaseType pVal) : EnumItem(pVal) { }
-
-#define Enum(pType, pName, pValue, pTitle, pDescr) public: static constexpr BaseType pName = BaseType(pValue); \
-bool is##pName() const { return mValue == pValue; }; \
-bool has##pName() const { return (mValue & pValue) != 0; }; \
-void set##pName() { mValue = mValue | pName; } \
-void reset##pName() { mValue = mValue | pName; } \
-private: static Qk::Core::EnumDesc<pType> __desc##pName;
-
-#define EnumEnd };
-
-#endif
+}
+}

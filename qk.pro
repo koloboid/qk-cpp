@@ -6,4 +6,5 @@ SUBDIRS += \
     mod \
     rpc \
     dbrpc \
-    rpchttp
+    rpchttp \
+    qdbuilder

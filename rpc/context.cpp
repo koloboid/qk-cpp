@@ -2,18 +2,24 @@
 
 #include "context.hpp"
 #include "session.hpp"
+#include "server.hpp"
 
 namespace Qk {
 namespace Rpc {
 
-Context::Context()
+Context::Context(Server* pServer)
+    : mServer(pServer)
 {
-
 }
 
 Context::~Context()
 {
     if (mOut) delete mOut;
+}
+
+bool Context::isServerThread()
+{
+    return QThread::currentThread() == mServer->thread();
 }
 
 void Context::respondError(const QString& pError, quint32 pStatusCode)

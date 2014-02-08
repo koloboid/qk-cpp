@@ -23,14 +23,12 @@ SOURCES += \
     log.cpp \
     lock.cpp \
     error.cpp \
-    enumitem.cpp \
-    enum.cpp \
     consoledevice.cpp \
     config.cpp \
-    qkapplication.cpp \
     config.unix.cpp \
     formatterjson.cpp \
     formatterxml.cpp \
+    qkapplication.cpp \
     formatter.cpp
 
 HEADERS += \
@@ -43,7 +41,6 @@ HEADERS += \
     log.hpp \
     lock.hpp \
     error.hpp \
-    enumitem.hpp \
     enum.hpp \
     core.export.hpp \
     consoledevice.hpp \

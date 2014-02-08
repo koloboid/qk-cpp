@@ -32,8 +32,8 @@ HEADERS += \
     transport.hpp
 
 SOURCES += \
-    server.cpp \
     context.cpp \
+    server.cpp \
     session.cpp \
     handler.cpp \
     sessionstorage.cpp \

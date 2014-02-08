@@ -5,7 +5,7 @@ namespace Qk
 namespace Core
 {
 
-LoggerTextIO::LoggerTextIO(QIODevice *pDevice, LogLevel pLevel, bool pUseColor)
+LoggerTextIO::LoggerTextIO(QIODevice *pDevice, ELogLevel pLevel, bool pUseColor)
     : mDevice(pDevice), mLevelMask(pLevel)
 {
     mFile = qobject_cast<QFile*>(pDevice);
@@ -28,7 +28,7 @@ void LoggerTextIO::writeItem(const LogItem &pItem)
         QString text = QString("%1  %3\t%2  \t%4\n")
                        .arg(pItem.time().toLocalTime().toString("dd.MM.yyyy HH:mm:ss.zzz"))
                        .arg(pItem.source())
-                       .arg(pItem.level().getTitle())
+                       .arg(LogLevel::getTitle(pItem.level()))
                        .arg(message);
 
         if (mUseColor)

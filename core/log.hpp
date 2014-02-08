@@ -48,20 +48,20 @@ private:
 private:
     QList<Logger*> mLoggers;
     BlockQueue<LogItem> mQueue;
-    LogLevel mLevelMask = LogLevel::MaskAll;
+    ELogLevel mLevelMask = LogLevel::MaskAll;
     bool mRun = false;
 };
 
 class QKCORE_EXPORT Log
 {
 public:
-    Log(LogBase* pLogBase, QString pSource, LogLevel pLevel = LogLevel::MaskAll)
+    Log(LogBase* pLogBase, QString pSource, ELogLevel pLevel = LogLevel::MaskAll)
         : mBase(pLogBase), mLevelMask(pLevel)
     {
         source(pSource);
     }
 
-    Log(Log* pLog, QString pSource, LogLevel pLevel = LogLevel::MaskAll)
+    Log(Log* pLog, QString pSource, ELogLevel pLevel = LogLevel::MaskAll)
         : mBase(pLog->mBase), mLevelMask(pLevel)
     {
         source(pSource);
@@ -81,7 +81,7 @@ public:
     void installQtHandler() { mBase->installQtHandler(); }
     void installSysSignalHandler() { mBase->installSysSignalHandler(); }
     void stopwatchStart();
-    void stopwatchEnd(const QString& pMessage, LogLevel pLevel = LogLevel::Trace);
+    void stopwatchEnd(const QString& pMessage, ELogLevel pLevel = LogLevel::Trace);
     void levelMask(LogLevel pLevel);
     LogLevel levelMask() const;
     QString source() const { return mSource; }
@@ -103,10 +103,12 @@ public:
         { return append(LogLevel::Error, pError.what(), "std::exception").backtrace(LogBase::getBacktrace()); }
     LogItem fatal(const QString& pMessage, const QString& pLocation = "")
         { return append(LogLevel::Fatality, pMessage, pLocation); }
+    LogItem fatal(const Error& pError)
+        { return append(LogLevel::Fatality, pError.message(), pError.location()).details(pError.details()).backtrace(pError.backtrace()); }
 
-    LogItem append(LogLevel pLevel, const QString& pMessage, const QString& pLocation = "")
+    LogItem append(ELogLevel pLevel, const QString& pMessage, const QString& pLocation = "")
     {
-        if (mLevelMask.hasOneOf(pLevel)) return LogItem(mBase, pLevel, pMessage, pLocation).source(mSource);
+        if (mLevelMask & pLevel) return LogItem(mBase, pLevel, pMessage, pLocation).source(mSource);
         else return LogItem();
     }
     virtual LogItem appendSystemInfo();
@@ -117,7 +119,7 @@ protected:
 private:
     LogBase* mBase;
     QString mSource;
-    LogLevel mLevelMask;
+    ELogLevel mLevelMask;
 };
 
 Log* log();

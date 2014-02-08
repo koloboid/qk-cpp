@@ -28,7 +28,7 @@ public:
     {
     }
 
-    LogItem(LogBase* pLog, LogLevel pLevel, const QString& pMessage, const QString& pLocation)
+    LogItem(LogBase* pLog, ELogLevel pLevel, const QString& pMessage, const QString& pLocation)
         : mData(new Data(pLog, pLevel, pMessage, pLocation))
     {
     }
@@ -49,7 +49,7 @@ public:
     LogItem& arg(const QString& pName, const T& pValue) { mData->mArgs[pName] = QVariant::fromValue<T>(pValue); return *this; }
     LogItem& arg(const QVariant& pValue) { mData->mMessage = mData->mMessage.arg(pValue.toString()); return *this; }
     LogItem& backtrace(const QString& pBacktrace = QString());
-    LogItem& level(LogLevel pLevel) { mData->mLevel = pLevel; return *this; }
+    LogItem& level(ELogLevel pLevel) { mData->mLevel = pLevel; return *this; }
     LogItem& time(QDateTime pTime) { mData->mTime = pTime; return *this; }
     void direct();
 
@@ -61,7 +61,7 @@ public:
     QString source() const { return mData->mSource; }
     QString stack() const { return mData->mStack; }
     QVariantMap args() const { return mData->mArgs; }
-    LogLevel level() const { return mData->mLevel; }
+    ELogLevel level() const { return mData->mLevel; }
     QDateTime time() const { return mData->mTime; }
     bool isValid() const { return mData->mLevel != LogLevel::MaskNone; }
 
@@ -70,7 +70,7 @@ public:
     {
     public:
         LogBase* mLog = nullptr;
-        LogLevel mLevel = LogLevel::MaskNone;
+        ELogLevel mLevel = LogLevel::MaskNone;
         QString mMessage;
         QString mSuggest;
         QString mDetails;
@@ -90,7 +90,7 @@ public:
         {
         }
 
-        Data(LogBase* pLog, LogLevel pLevel, const QString& pMessage, const QString& pLocation)
+        Data(LogBase* pLog, ELogLevel pLevel, const QString& pMessage, const QString& pLocation)
             : mLog(pLog), mLevel(pLevel), mMessage(pMessage), mLocation(pLocation),
               mTime(QDateTime::currentDateTimeUtc())
         {

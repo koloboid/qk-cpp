@@ -147,7 +147,6 @@ void Server::onRequest(Transport*, Context* pContext) noexcept
                 pContext->log()->warn(tr("Обработчик '%1' занял %2мс времени серверного потока. Произошла блокировка работы сервера. Переведите обработчик в асинхронный режим")
                                       .arg(path).arg(tmr.elapsed()));
             }
-            return;
         }
         else
         {
@@ -165,7 +164,7 @@ void Server::onRequest(Transport*, Context* pContext) noexcept
         pContext->log()->error(pStdErr);
         pContext->respondError(pStdErr.what());
     }
-    pContext->finish();
+    if (!pContext->hasAsyncCall()) pContext->finish();
 }
 
 void Server::runAsyncRequest(QRunnable* pRun)

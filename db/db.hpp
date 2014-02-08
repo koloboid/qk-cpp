@@ -22,14 +22,18 @@ public:
 
 public:
     template<class TTable>
-    void registerTable() { addTable(&TTable::TableSchema); }
-    ITable* getTable(const QString& pName) const { return mTables[pName]; }
+    TTable* registerTable() { TTable* t = new TTable(this); addTable(t); return t; }
+    template<class TTable = ITable>
+    TTable* getTable(const QString& pName = TTable::tableName) const { return (TTable*)mTables[pName]; }
     QMap<QString, ITable*> tables() const { return mTables; }
 
     virtual Driver* drv();
     virtual void init();
     virtual void setupConnection(const QString& pConnectionString);
     virtual void migrate();
+
+    template<class TTable>
+    TTable* operator()() const { return getTable(""); }
 
 private:
     void addTable(ITable* pTable);

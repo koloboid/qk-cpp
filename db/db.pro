@@ -14,36 +14,27 @@ INCLUDEPATH += ../../
 QMAKE_CXXFLAGS += -std=c++0x -Wall
 
 SOURCES += \
-    value.cpp \
-    table.cpp \
-    rowstate.cpp \
-    rowaction.cpp \
-    query.cpp \
-    model.cpp \
-    fieldflag.cpp \
+    db.cpp \
     field.cpp \
+    row.cpp \
+    driver.cpp \
     errordb.cpp \
     drivermysql.cpp \
-    driver.cpp \
-    db.cpp \
-    condition.cpp
+    condition.cpp \
+    query.cpp \
+    table.cpp
 
 HEADERS += \
-    value.hpp \
-    table.hpp \
-    rowstate.hpp \
-    rowaction.hpp \
-    query.hpp \
-    model.hpp \
-    fieldflag.hpp \
+    db.hpp \
     field.hpp \
+    row.hpp \
+    driver.hpp \
     errordb.hpp \
     drivermysql.hpp \
-    driver.hpp \
-    dbmacro.hpp \
-    db.hpp \
-    db.export.hpp \
-    condition.hpp
+    condition.hpp \
+    query.hpp \
+    fieldflag.hpp \
+    table.hpp
 
 unix:!symbian {
     maemo5 {

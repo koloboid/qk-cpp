@@ -1,5 +1,4 @@
-#if !defined(QKLOGLEVEL) || defined(ENUMIMPL)
-#define QKLOGLEVEL
+#pragma once
 
 #include "enum.hpp"
 
@@ -8,20 +7,28 @@ namespace Qk
 namespace Core
 {
 
-EnumBegin(LogLevel, quint8, MaskNone)
-    Enum(LogLevel, MaskNone,     0x00, "NONE", "")
-    Enum(LogLevel, Trace,        0x01, "TRACE", "")
-    Enum(LogLevel, Debug,        0x02, "DEBUG", "")
-    Enum(LogLevel, Info,         0x04, "INFO", "")
-    Enum(LogLevel, Warn,         0x08, "WARN", "")
-    Enum(LogLevel, Assert,       0x10, "ASSERT", "")
-    Enum(LogLevel, Error,        0x20, "ERROR", "")
-    Enum(LogLevel, Fatality,     0x40, "FATAL", "")
-    Enum(LogLevel, MaskErrors,   0x70, "ERRORS", "")
-    Enum(LogLevel, MaskAll,      0xFF, "ALL", "")
-EnumEnd
+class LogLevel : public Enum
+{
+    Q_OBJECT
+
+public:
+    enum Value
+    {
+        MaskNone        = 0x00,
+        Trace           = 0x01,
+        Debug           = 0x02,
+        Info            = 0x04,
+        Warn            = 0x08,
+        Assert          = 0x10,
+        Error           = 0x20,
+        Fatality        = 0x40,
+        MaskErrors      = 0x70,
+        MaskAll         = 0xFF,
+    };
+
+    QKENUM(Value)
+};
+QKENUMDECL(LogLevel::Value, ELogLevel)
 
 }
 }
-
-#endif

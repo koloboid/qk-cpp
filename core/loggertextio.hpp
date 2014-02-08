@@ -12,7 +12,7 @@ namespace Core
 class QKCORE_EXPORT LoggerTextIO : public Logger
 {
 public:
-    LoggerTextIO(QIODevice* pDevice, LogLevel pLevelMask = LogLevel::MaskAll, bool pUseColor = false);
+    LoggerTextIO(QIODevice* pDevice, ELogLevel pLevelMask = LogLevel::MaskAll, bool pUseColor = false);
 
 public:
     virtual void writeItem(const LogItem &pItem) override;
@@ -22,7 +22,7 @@ protected:
 
     QIODevice* mDevice = nullptr;
     QFile* mFile = nullptr;
-    LogLevel mLevelMask;
+    ELogLevel mLevelMask;
     bool mUseColor = false;
 };
 

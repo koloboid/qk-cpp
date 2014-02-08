@@ -15,7 +15,7 @@ class HttpContext : public Context
     Q_OBJECT
 
 public:
-    HttpContext(HttpServerRequest* pReq, HttpServerResponse* pResp);
+    HttpContext(Server* pServer, HttpServerRequest* pReq, HttpServerResponse* pResp);
     virtual ~HttpContext();
 
 public:

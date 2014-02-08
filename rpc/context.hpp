@@ -14,21 +14,25 @@ namespace Rpc {
 
 extern Log* rpclog(Log* pParent = 0);
 
+class Server;
+
 class Context : public QObject
 {
     Q_OBJECT
 
     friend class RpcRunnable;
+    friend class RpcFuncRunnable;
     friend class Server;
     friend class Handler;
 
 public:
-    Context();
+    Context(Server* pServer);
     virtual ~Context();
 
 public:
     virtual QUuid sessionId() = 0;
     virtual QString path() = 0;
+    bool isServerThread();
 
     void respondError(const Error& pError, quint32 pStatusCode = 500) { respondError(pError.toString(), pStatusCode); }
     void respondError(const QString& pError, quint32 pStatusCode = 500);
@@ -43,6 +47,8 @@ protected:
     virtual void start();
     virtual void finish();
     void setSession(Session* pSession);
+    bool hasAsyncCall() const { return mHasAsyncCall; }
+    void hasAsyncCall(bool pHas) { mHasAsyncCall = pHas; }
 
 protected:
     QStringList mRespondErrors;
@@ -52,6 +58,8 @@ protected:
 private:
     Session* mSession = nullptr;
     Formatter* mOut = nullptr;
+    Server* mServer = nullptr;
+    bool mHasAsyncCall = false;
 };
 
 }

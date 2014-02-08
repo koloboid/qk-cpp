@@ -1,14 +1,15 @@
 #include "query.hpp"
 #include "table.hpp"
 #include "driver.hpp"
-#include "model.hpp"
+#include "table.hpp"
+#include <qk/core/error.hpp>
 
 namespace Qk
 {
 namespace Db
 {
 
-IQuery::IQuery(ITable *pTable, QList<IField *> pFields, Driver* pDriver)
+IQuery::IQuery(const ITable* pTable, QList<IField*> pFields, Driver* pDriver)
     : mTable(pTable), mFields(pFields), mDriver(pDriver)
 {
     ASSERTPTR(pTable);
@@ -31,6 +32,15 @@ IQuery& IQuery::limit(quint32 pCount)
     return *this;
 }
 
+IQuery& IQuery::order(IField* pField, Qt::SortOrder pOrder)
+{
+    if (mFields.contains(pField))
+    {
+        mSort[pField] = pOrder;
+    }
+    return *this;
+}
+
 IQuery& IQuery::limit(quint64 pOffset, quint32 pCount)
 {
     mLimitOffset = pOffset;
@@ -38,10 +48,10 @@ IQuery& IQuery::limit(quint64 pOffset, quint32 pCount)
     return *this;
 }
 
-RModel IQuery::one()
+IRow IQuery::one()
 {
-    QList<RModel> rv = mDriver->select(this);
-    return rv.size() > 0 ? rv[0] : RModel();
+    QList<IRow> rv = mDriver->select(*this);
+    return rv.size() > 0 ? rv[0] : IRow(*mTable, RowState::Invalid);
 }
 
 }

@@ -21,11 +21,11 @@ QString Driver::connectionName()
     return QString("%1").arg((intptr_t)this);
 }
 
-void Driver::migrateDb(const Db* pSchema)
+void Driver::migrateDb(const Db& pSchema)
 {
-    foreach (const ITable* tab, pSchema->tables())
+    foreach (const ITable* tab, pSchema.tables())
     {
-        migrateTable(tab);
+        migrateTable(*tab);
     }
 }
 

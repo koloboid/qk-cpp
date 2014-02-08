@@ -10,7 +10,7 @@ namespace Rpc {
 class HttpTransport : public Transport
 {
 public:
-    HttpTransport(QHostAddress pListenAddr, quint16 pPOrt);
+    HttpTransport(Server* pRpcServer, QHostAddress pListenAddr, quint16 pPOrt);
     virtual ~HttpTransport();
 
 public:

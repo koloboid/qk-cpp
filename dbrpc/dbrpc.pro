@@ -13,9 +13,11 @@ CONFIG += staticlib
 INCLUDEPATH += ../../
 QMAKE_CXXFLAGS += -std=c++0x -Wall
 
-SOURCES +=
+SOURCES += \
+    tablehandler.cpp
 
-HEADERS +=
+HEADERS += \
+    tablehandler.hpp
 
 unix:!symbian {
     maemo5 {
