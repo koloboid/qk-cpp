@@ -28,7 +28,7 @@ void IRow::reset()
     ASSERTPTR(mData->mTable)
     foreach (IField* fld, table()->fields())
     {
-        this->set(fld, fld->defaultValue());
+        this->setPrivate(fld, fld->defaultValue());
     }
 }
 
@@ -50,7 +50,7 @@ void IRow::load(const QSqlRecord& pRecord)
     for (int i = 0; i < pRecord.count(); i++)
     {
         IField* fld = table()->field(pRecord.fieldName(i));
-        set(*fld, pRecord.value(i));
+        setPrivate(fld, pRecord.value(i));
     }
     mData->mState = RowState::Original;
 }
@@ -101,7 +101,7 @@ void IRow::save(Driver* pDrv)
             QVariant id = pDrv->insertRow(*this);
             if (table()->primaryField()->flags() & FieldFlag::AutoIncrement)
             {
-                set(*table()->primaryField(), id);
+                setPrivate(table()->primaryField(), id);
             }
             mData->mState = RowState::Original;
             break;
@@ -116,6 +116,7 @@ void IRow::drop(Driver* pDrv)
         pDrv = table()->db()->drv();
     }
     pDrv->deleteRow(*this);
+    mData->mState = RowState::Invalid;
 }
 
 }
