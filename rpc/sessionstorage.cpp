@@ -7,7 +7,7 @@ namespace Rpc {
 SessionStorage::SessionStorage(const TimeSpan& pSessionLifeTime)
     : mLifeTime(pSessionLifeTime)
 {
-    rpclog()->debug(ERRLOC).arg("TimerStart result", startTimer(1000));
+    startTimer(1000);
 }
 
 SessionStorage::~SessionStorage()
