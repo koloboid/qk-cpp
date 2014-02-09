@@ -137,8 +137,10 @@ void Handler::doAsync(Context* pCtx, const std::function<void(Context*)>& pFunc)
 
 void Handler::processRequestInternal(Context* pCtx)
 {
+    pCtx->mHandler = this;
     if (isAsync(pCtx))
     {
+        pCtx->hasAsyncCall(true);
         RpcRunnable* run = new RpcRunnable(this, pCtx);
         mServer->runAsyncRequest(run);
     }

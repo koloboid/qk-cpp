@@ -22,6 +22,18 @@ bool Context::isServerThread()
     return QThread::currentThread() == mServer->thread();
 }
 
+void Context::doAsync(const std::function<void (Context*)>& pFunc)
+{
+    if (mHandler)
+    {
+        mHandler->doAsync(this, pFunc);
+    }
+    else
+    {
+        throw Error(ERRLOC, TR("Невозможно выполнить асинхронный переход, т.к. обработчик запроса не определен"));
+    }
+}
+
 void Context::respondError(const QString& pError, quint32 pStatusCode)
 {
     mStatusCode = pStatusCode;

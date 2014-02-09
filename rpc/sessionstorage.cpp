@@ -1,4 +1,5 @@
 #include "sessionstorage.hpp"
+#include "server.hpp"
 
 namespace Qk {
 namespace Rpc {
@@ -6,7 +7,7 @@ namespace Rpc {
 SessionStorage::SessionStorage(const TimeSpan& pSessionLifeTime)
     : mLifeTime(pSessionLifeTime)
 {
-    startTimer(1000);
+    rpclog()->debug(ERRLOC).arg("TimerStart result", startTimer(1000));
 }
 
 SessionStorage::~SessionStorage()

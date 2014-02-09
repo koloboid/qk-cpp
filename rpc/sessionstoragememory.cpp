@@ -9,6 +9,11 @@ SessionStorageMemory::SessionStorageMemory(const TimeSpan& pSessionLifeTime, qui
 {
 }
 
+SessionStorageMemory::~SessionStorageMemory()
+{
+
+}
+
 Session* SessionStorageMemory::getSession(QUuid pID)
 {
     Session* s = mSessions.value(pID);

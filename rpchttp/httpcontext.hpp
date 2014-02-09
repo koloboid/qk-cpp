@@ -30,6 +30,8 @@ signals:
 protected:
     virtual void finish() override;
     virtual void start() override;
+    void setCookie(const QString& pName, const QString& pVal, const QString& pPath, const QString& pDomain = QString(),
+                   bool pHttpOnly = true, bool pSecure = false);
 
 protected slots:
     void sendResponse();

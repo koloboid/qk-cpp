@@ -22,7 +22,7 @@ private slots:
     void onRequestReady(Tufao::HttpServerRequest& pRequest, Tufao::HttpServerResponse& pResp);
 
 private:
-    Tufao::HttpServer* mServer;
+    Tufao::HttpServer* mHttpServer;
     QHostAddress mListenAddr;
     quint16 mListenPort;
     bool mIsPaused = false;

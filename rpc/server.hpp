@@ -29,29 +29,25 @@ public:
     void removeTransport(Transport* pTransport);
 
     template<class THandler>
-    void addHandler() { addHandler(new THandler(this)); }
-    void addHandler(Handler* pHandler);
+    void addHandler(const QRegExp& pPath) { addHandler(pPath, new THandler(this)); }
+    void addHandler(const QRegExp& pPath, Handler* pHandler);
     template<class TThis>
     void addSyncHandler(const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc)
     {
-        HandlerFunctor<TThis>* hdl = new HandlerFunctor<TThis>(this, pPath, pThis, pProc, false);
-        mHandlerList.append(hdl);
+        addHandler(pPath, new HandlerFunctor<TThis>(this, pPath, pThis, pProc, false));
     }
     void addSyncHandler(const QRegExp& pPath, const std::function<void(Context*)>& pFunc)
     {
-        HandlerStdFunctor* hdl = new HandlerStdFunctor(this, pPath, pFunc, false);
-        mHandlerList.append(hdl);
+        addHandler(pPath, new HandlerStdFunctor(this, pFunc, false));
     }
     template<class TThis>
     void addAsyncHandler(const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc)
     {
-        HandlerFunctor<TThis>* hdl = new HandlerFunctor<TThis>(this, pPath, pThis, pProc, true);
-        mHandlerList.append(hdl);
+        addHandler(pPath, new HandlerFunctor<TThis>(this, pThis, pProc, true));
     }
     void addAsyncHandler(const QRegExp& pPath, const std::function<void(Context*)>& pFunc)
     {
-        HandlerStdFunctor* hdl = new HandlerStdFunctor(this, pPath, pFunc, true);
-        mHandlerList.append(hdl);
+        addHandler(pPath, new HandlerStdFunctor(this, pFunc, true));
     }
     void removeHandler(Handler* pHandler);
 
@@ -72,8 +68,6 @@ private:
     QList<QPair<QRegExp, Handler*>> mHandlers;
     QList<Transport*> mTransport;
     bool mInitialized = false;
-
-    QList<Handler*> mHandlerList;
 };
 
 }

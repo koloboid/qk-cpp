@@ -32,12 +32,12 @@ Server::~Server()
     delete mSessionStorage;
 }
 
-void Server::addHandler(Handler* pHandler)
+void Server::addHandler(const QRegExp& pPath, Handler* pHandler)
 {
     ASSERTPTR(pHandler);
 
-    rpclog()->debug(tr("Добавлен обработчик пути '%1'").arg(pHandler->path().pattern()));
-    mHandlers.append({ pHandler->path(), pHandler });
+    rpclog()->debug(tr("Добавлен обработчик пути '%1'").arg(pPath.pattern()));
+    mHandlers.append({ pPath, pHandler });
     pHandler->setParent(this);
 }
 

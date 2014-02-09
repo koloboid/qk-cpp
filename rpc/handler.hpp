@@ -18,13 +18,13 @@ class Handler : public QObject
 
     friend class RpcRunnable;
     friend class Server;
+    friend class Context;
 
 public:
     Handler(Server* pParent);
 
 public:
     Server* server() const { return mServer; }
-    virtual QRegExp path() = 0;
     virtual void init();
     virtual void newSession(Context* pCtx);
 
@@ -47,13 +47,12 @@ template<class TThis>
 class HandlerFunctor : public Handler
 {
 public:
-    HandlerFunctor(Server* pServer, const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc, bool pIsAsync)
-        : Handler(pServer), mPath(pPath), mProc(pProc), mThis(pThis), mIsAsync(pIsAsync)
+    HandlerFunctor(Server* pServer, TThis* pThis, HandlerProc<TThis> pProc, bool pIsAsync)
+        : Handler(pServer), mProc(pProc), mThis(pThis), mIsAsync(pIsAsync)
     {
     }
 
 protected:
-    virtual QRegExp path() { return mPath; }
     virtual bool isAsync(Context*) const { return mIsAsync; }
     virtual void processRequest(Context* pCtx) override
     {
@@ -61,7 +60,6 @@ protected:
     }
 
 private:
-    QRegExp mPath;
     HandlerProc<TThis> mProc;
     TThis* mThis;
     bool mIsAsync;
@@ -70,13 +68,12 @@ private:
 class HandlerStdFunctor : public Handler
 {
 public:
-    HandlerStdFunctor(Server* pServer, const QRegExp& pPath, const std::function<void(Context*)>& pFunc, bool pIsAsync)
-        : Handler(pServer), mPath(pPath), mIsAsync(pIsAsync), mFunc(pFunc)
+    HandlerStdFunctor(Server* pServer, const std::function<void(Context*)>& pFunc, bool pIsAsync)
+        : Handler(pServer), mIsAsync(pIsAsync), mFunc(pFunc)
     {
     }
 
 protected:
-    virtual QRegExp path() { return mPath; }
     virtual bool isAsync(Context*) const { return mIsAsync; }
     virtual void processRequest(Context* pCtx) override
     {
@@ -84,7 +81,6 @@ protected:
     }
 
 private:
-    QRegExp mPath;
     bool mIsAsync;
     std::function<void(Context*)> mFunc;
 };

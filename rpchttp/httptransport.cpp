@@ -11,7 +11,7 @@ namespace Qk {
 namespace Rpc {
 
 HttpTransport::HttpTransport(Server* pRpcServer, QHostAddress pListenAddr, quint16 pPOrt)
-    : Transport(pRpcServer), mServer(0), mListenAddr(pListenAddr), mListenPort(pPOrt)
+    : Transport(pRpcServer), mHttpServer(0), mListenAddr(pListenAddr), mListenPort(pPOrt)
 {
 }
 
@@ -30,21 +30,21 @@ void HttpTransport::run()
     {
         stop();
         mIsPaused = false;
-        mServer = new HttpServer(this);
-        if (!mServer->listen(mListenAddr, mListenPort))
+        mHttpServer = new HttpServer(this);
+        if (!mHttpServer->listen(mListenAddr, mListenPort))
         {
             throw Error(ERRLOC, tr("Невозможно установить HTTP сервер на %1:%2. Адрес занят другим сокетом")
                         .arg(mListenAddr.toString()).arg(mListenPort));
         }
-        connect(mServer, &HttpServer::requestReady, this, &HttpTransport::onRequestReady);
+        connect(mHttpServer, &HttpServer::requestReady, this, &HttpTransport::onRequestReady);
     }
 }
 
 void HttpTransport::stop()
 {
     mIsPaused = false;
-    if (mServer) delete mServer;
-    mServer = 0;
+    if (mHttpServer) delete mHttpServer;
+    mHttpServer = 0;
 }
 
 void HttpTransport::pause()

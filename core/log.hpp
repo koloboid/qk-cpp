@@ -137,12 +137,12 @@ public:
     LogScopeClass(Log* pLog, const char* pFunction, const char* pComment = 0)
         : mLog(pLog), mExitText(qApp->translate("", "Exit from %1. %2").arg(pFunction).arg(pComment))
     {
-        mLog->trace(qApp->translate("", "Enter to %1. %2").arg(pFunction).arg(pComment));
+        mLog->trace(qApp->translate("", "Enter to %1. %2").arg(pFunction).arg(pComment)).direct();
     }
 
     ~LogScopeClass()
     {
-        mLog->trace(mExitText);
+        mLog->trace(mExitText).direct();
     }
 };
 

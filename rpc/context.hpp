@@ -15,6 +15,7 @@ namespace Rpc {
 extern Log* rpclog(Log* pParent = 0);
 
 class Server;
+class Handler;
 
 class Context : public QObject
 {
@@ -34,6 +35,7 @@ public:
     virtual QString path() = 0;
     bool isServerThread();
 
+    void doAsync(const std::function<void(Context*)>& pFunc);
     void respondError(const Error& pError, quint32 pStatusCode = 500) { respondError(pError.toString(), pStatusCode); }
     void respondError(const QString& pError, quint32 pStatusCode = 500);
 
@@ -42,6 +44,7 @@ public:
     quint32 statusCode() const { return mStatusCode; }
     Log* log() const { return session() ? session()->log() : rpclog(); }
     Formatter* out() { ASSERTPTR(mOut); return mOut; }
+    Handler* handler() const { return mHandler; }
 
 protected:
     virtual void start();
@@ -59,6 +62,7 @@ private:
     Session* mSession = nullptr;
     Formatter* mOut = nullptr;
     Server* mServer = nullptr;
+    Handler* mHandler = nullptr;
     bool mHasAsyncCall = false;
 };
 

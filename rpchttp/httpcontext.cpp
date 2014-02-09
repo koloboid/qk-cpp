@@ -70,6 +70,17 @@ void HttpContext::start()
     Context::start();
 }
 
+void HttpContext::setCookie(const QString& pName, const QString& pVal, const QString& pPath, const QString& pDomain, bool pHttpOnly, bool pSecure)
+{
+    ASSERTSTR(pName, 1, 255);
+    QString header = pName + "=" + pVal;
+    if (!pPath.isEmpty()) header += "; Path=" + pPath;
+    if (!pDomain.isEmpty()) header += "; Domain=" + pDomain;
+    if (pHttpOnly) header += "; HttpOnly";
+    if (pSecure) header += "; Secure";
+    mResp->headers().insert("Set-Cookie", header.toUtf8());
+}
+
 void HttpContext::sendResponse()
 {
     // main server thread
@@ -78,7 +89,7 @@ void HttpContext::sendResponse()
         mResp->writeHead(statusCode(), statusText().toUtf8());
         if (session() && session()->isNew())
         {
-            mResp->headers().insert("Set-Cookie", ("QKSESSID=" + session()->id().toString()).toUtf8());
+            setCookie("QKSESSID", session()->id().toString(), "/");
         }
         mResp->headers().insert("Content-Type", out()->contentType().toUtf8());
         mResp->end(mResponseBuffer.buffer());
