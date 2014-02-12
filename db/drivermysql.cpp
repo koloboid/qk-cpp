@@ -74,7 +74,7 @@ bool DriverMySql::checkConnection()
     return q.next();
 }
 
-QList<IRow> DriverMySql::select(const IQuery& pQuery)
+void DriverMySql::query(const IQuery& pQuery, int* pTotalCount, const std::function<void(const QSqlRecord& pRecord)>& pFunc)
 {
     QString cols = "";
     QString order = "";
@@ -103,7 +103,14 @@ QList<IRow> DriverMySql::select(const IQuery& pQuery)
         .arg(limit);
 
     doQuery(sql);
-    return readQueryResult(pQuery);
+    if (pTotalCount) *pTotalCount = mCurrentQuery.size();
+    if (pFunc)
+    {
+        while (mCurrentQuery.next())
+        {
+            pFunc(mCurrentQuery.record());
+        }
+    }
 }
 
 QString DriverMySql::conditionToSql(const Condition& pCond)
@@ -137,7 +144,7 @@ QString DriverMySql::sqlValue(QVariant pValue, const IField* pField)
     {
         IRow mod = pField->linkedTo()->rowFromVariant(pValue);
         if (!mod) return "NULL";
-        return sqlValue(mod.table()->primaryField()->get(mod), mod.table()->primaryField());
+        return sqlValue(mod.primaryValue(), mod.table()->primaryField());
     }
     else
     {
@@ -187,21 +194,6 @@ QString DriverMySql::operatorToSql(Condition::EOperator pOperator)
         default:
             return "UNKNOWN";
     }
-}
-
-QList<IRow> DriverMySql::readQueryResult(const IQuery& pQuery)
-{
-    QList<IRow> rows;
-    if (mCurrentQuery.isActive() && mCurrentQuery.isSelect())
-    {
-        while (mCurrentQuery.next())
-        {
-            IRow row = pQuery.table()->newRow();
-            row.load(mCurrentQuery.record());
-            rows.append(row);
-        }
-    }
-    return rows;
 }
 
 void DriverMySql::deleteRow(const IRow&)
@@ -468,13 +460,6 @@ QString DriverMySql::typeName(const IField* pField)
 QString DriverMySql::escape(const QString& pName)
 {
     return "`" + pName + "`";
-}
-
-void DriverMySql::select(const IQuery& pQuery, Formatter* pFormatter)
-{
-    Q_UNUSED(pQuery)
-    Q_UNUSED(pFormatter)
-    throw Qk::Core::ErrorNotImplemented(ERRLOC);
 }
 
 }

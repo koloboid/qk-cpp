@@ -25,33 +25,19 @@ IQuery::~IQuery()
 {
 }
 
-IQuery& IQuery::limit(quint32 pCount)
-{
-    mLimitOffset = 0;
-    mLimitCount = pCount;
-    return *this;
-}
-
-IQuery& IQuery::order(IField* pField, Qt::SortOrder pOrder)
-{
-    if (mFields.contains(pField))
-    {
-        mSort[pField] = pOrder;
-    }
-    return *this;
-}
-
-IQuery& IQuery::limit(quint64 pOffset, quint32 pCount)
-{
-    mLimitOffset = pOffset;
-    mLimitCount = pCount;
-    return *this;
-}
-
 IRow IQuery::one()
 {
-    QList<IRow> rv = mDriver->select(*this);
-    return rv.size() > 0 ? rv[0] : IRow(*mTable, RowState::Invalid);
+    mLimitCount = 1;
+    int sz = 0;
+    IRow row(table());
+    mDriver->query(*this, &sz, [&row](const QSqlRecord& pRecord) {
+        row.load(pRecord);
+    });
+    return sz == 0 ? IRow(nullptr) : row;
+}
+
+QList<IRow> IQuery::list()
+{
 }
 
 }

@@ -122,7 +122,7 @@ Driver* Db::drv()
         mThreadDriver->disconnect();
         mThreadDriver->connect();
     }
-    if (mThreadDriver->inTransaction()) mThreadDriver->rollback();
+//    if (mThreadDriver->inTransaction()) mThreadDriver->rollback();
     return mThreadDriver;
 }
 

@@ -27,6 +27,11 @@ void ITable::addField(IField* pField)
     mFields[pField->name()] = pField;
 }
 
+IQuery ITable::selectInternal(Driver*, QList<IField *>) const
+{
+    throw ErrorNotImplemented(ERRLOC);
+}
+
 void ITable::init()
 {
     foreach (IField* fld, mFields.values())

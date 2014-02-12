@@ -2,6 +2,7 @@
 
 #include "db.export.hpp"
 #include <QThread>
+#include <QSqlRecord>
 #include <qk/core/formatter.hpp>
 
 namespace Qk
@@ -34,9 +35,7 @@ public:
     virtual void rollback() = 0;
     virtual bool inTransaction() const = 0;
 
-    virtual QList<IRow> select(const IQuery& pQuery) = 0;
-    virtual void select(const IQuery& pQuery, Qk::Core::Formatter* pFormatter) = 0;
-
+    virtual void query(const IQuery& pQuery, int* pTotalCount, const std::function<void(const QSqlRecord& pRecord)>& pFunc) = 0;
     virtual QVariant insertRow(const IRow& pRow) = 0;
     virtual void updateRow(const IRow& pRow) = 0;
     virtual void deleteRow(const IRow& pRow) = 0;

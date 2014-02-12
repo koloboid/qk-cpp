@@ -8,7 +8,8 @@ namespace Qk
 namespace Mod
 {
 
-CTimeModule::CTimeModule()
+CTimeModule::CTimeModule(const QString& pProjectName, const QString& pModName)
+    : mModName(pModName), mProjectName(pProjectName)
 {
 
 }

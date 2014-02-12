@@ -6,6 +6,8 @@
 #include <QSqlRecord>
 #include <qk/core/enum.hpp>
 #include <qk/core/error.hpp>
+#include <qk/core/formatter.hpp>
+#include "field.hpp"
 
 namespace Qk {
 namespace Db {
@@ -35,7 +37,7 @@ class IRow
 {
 public:
     IRow();
-    IRow(const ITable& pTable, RowState::Value pState = RowState::New);
+    IRow(const ITable* pTable, RowState::Value pState = RowState::New);
     virtual ~IRow();
 
 public:
@@ -46,17 +48,17 @@ public:
     virtual void drop(Driver* pDrv = 0);
     virtual void load(const QSqlRecord& pRecord);
 
-    QVariant get(const IField& pField) const { return get(&pField); }
+    QVariant get(const IField& pField, bool pLazyFetch = false) const { return get(&pField, pLazyFetch); }
     IRow& set(const IField& pField, const QVariant& pValue) { return set(&pField, pValue); }
     template<class T>
-    T get(const IField& pField) const { return get<T>(&pField); }
+    T get(const IField& pField, bool pLazyFetch = false) const { return get<T>(&pField, pLazyFetch); }
     template<class T>
     IRow& set(const IField& pField, const T& pValue) { return set<T>(&pField, pValue); }
 
-    QVariant get(const IField* pField) const { return mData->mValues.value(pField); }
+    QVariant get(const IField* pField, bool pLazyFetch = false) const { if (pLazyFetch && pField->linkedTo()) return lazyFetch(pField); return mData->mValues.value(pField); }
     IRow& set(const IField* pField, const QVariant& pValue);
     template<class T>
-    T get(const IField* pField) const { return QVariant::value<T>(mData->mValues.value(pField)); }
+    T get(const IField* pField, bool pLazyFetch = false) const { return QVariant::value<T>(get(pField, pLazyFetch)); }
     template<class T>
     IRow& set(const IField* pField, const T& pValue) { return set(pField, QVariant::fromValue<T>(pValue)); }
 
@@ -64,8 +66,10 @@ public:
     const ITable* table() const { return mData->mTable; }
     bool operator!() const { return state() == RowState::Invalid || mData->mTable == nullptr; }
     RowState::Value state() const { return mData->mState; }
+    void serialize(Formatter& pFmt) const;
 
 protected:
+    QVariant lazyFetch(const IField* pField) const;
     IRow& setPrivate(const IField* pField, const QVariant& pValue);
 
 private:
@@ -75,10 +79,11 @@ private:
         const ITable* mTable;
         QMap<const IField*, QVariant> mValues;
         RowState::Value mState;
+        mutable QMap<const IField*, QVariant> mFK;
 
     public:
-        Data(const ITable& pTable, RowState::Value pState)
-            : mTable(&pTable), mState(pState)
+        Data(const ITable* pTable, RowState::Value pState)
+            : mTable(pTable), mState(pState)
         {
         }
         Data()
@@ -105,36 +110,31 @@ public:
     {
     }
 
-    Row(const TTable& pTable)
-        : IRow(pTable)
-    {
-    }
-
     Row(const TTable* pTable)
-        : IRow(*pTable)
+        : IRow(pTable)
     {
     }
 
 public:
     template<class TField>
-    typename TField::Type get(const TField& pField) const
+    typename TField::Type get(const TField& pField, bool pLazyFetch = true) const
     {
         static_assert(std::is_same<typename TField::Table, TTable>::value, "Type of model for this field must be the same as row's model");
-        QVariant v = IRow::get(pField);
+        QVariant v = IRow::get(pField, pLazyFetch & TField::IsFK);
         return v.value<typename TField::Type>();
     }
 
     template<class TField>
-    typename TTable::Row& set(const TField& pField, typename TField::Type pValue)
+    typename TTable::RowType& set(const TField& pField, typename TField::Type pValue)
     {
         static_assert(std::is_same<typename TField::Table, TTable>::value, "Type of model for this field must be the same as row's model");
         static_assert(!TField::ReadOnly, "This field is read-only. You can change this field only by calling Row::setPrivate function");
         IRow::set(pField, QVariant::fromValue<typename TField::Type>(pValue));
-        return static_cast<typename TTable::Row&>(*this);
+        return static_cast<typename TTable::RowType&>(*this);
     }
 
     template<class TField>
-    typename TTable::Row& operator()(const TField& pField, typename TField::Type pValue)
+    typename TTable::RowType& operator()(const TField& pField, typename TField::Type pValue)
     {
         return set(pField, pValue);
     }
@@ -148,19 +148,21 @@ public:
 
 protected:
     template<class TField>
-    typename TTable::Row& setPrivate(const TField& pField, typename TField::Type pValue)
+    typename TTable::RowType& setPrivate(const TField& pField, typename TField::Type pValue)
     {
         static_assert(std::is_same<typename TField::Table, TTable>::value, "Type of model for this field must be the same as row's model");
         IRow::setPrivate(&pField, QVariant::fromValue<typename TField::Type>(pValue));
-        return static_cast<typename TTable::Row&>(*this);
+        return static_cast<typename TTable::RowType&>(*this);
     }
 };
 
+
 }
 }
+
+Q_DECLARE_METATYPE(Qk::Db::IRow)
 
 #define QKROWCTOR(pRowClass, pBaseClass) public: \
     pRowClass() : pBaseClass() { } \
     explicit pRowClass(const IRow& pRow) : pBaseClass(pRow) { } \
-    pRowClass(const typename pBaseClass::TableType& pTable) : pBaseClass(pTable) { } \
     pRowClass(const typename pBaseClass::TableType* pTable) : pBaseClass(pTable) { };

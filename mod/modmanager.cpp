@@ -5,12 +5,6 @@ namespace Qk
 namespace Mod
 {
 
-ModManager* mod()
-{
-    static ModManager* mgr = new ModManager();
-    return mgr;
-}
-
 void ModManager::init()
 {
     foreach (CTimeModule* mod, mModules.values())

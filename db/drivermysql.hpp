@@ -27,9 +27,7 @@ public:
     virtual void rollback() override;
     virtual bool inTransaction() const { return mInTransaction; }
 
-    virtual QList<IRow> select(const IQuery& pQuery) override;
-    virtual void select(const IQuery& pQuery, Core::Formatter* pFormatter) override;
-
+    virtual void query(const IQuery& pQuery, int* pTotalCount, const std::function<void(const QSqlRecord& pRecord)>& pFunc);
     virtual QVariant insertRow(const IRow& pRow) override;
     virtual void updateRow(const IRow& pRow) override;
     virtual void deleteRow(const IRow& pRow) override;
@@ -42,7 +40,6 @@ protected:
     virtual void doQuery(const QString& pSql);
     virtual void doQuery(QSqlQuery pQuery);
     bool hasRecord();
-    QList<IRow> readQueryResult(const IQuery& pQuery);
 
     static QString fieldDefinition(const IField* pField);
     static QString typeName(const IField* pField);

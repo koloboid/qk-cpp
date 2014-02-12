@@ -15,6 +15,7 @@ public:
     TModule* createModule();
     void init();
     void run();
+    QMap<QString, CTimeModule*> modules() const { return mModules; }
 
 private:
     QMap<QString, CTimeModule*> mModules;
@@ -27,13 +28,11 @@ TModule* ModManager::createModule()
     if (pEnabled)
     {
         TModule* m = new TModule();
-        mModules[m->name()] = m;
+        mModules[m->fullName()] = m;
         return m;
     }
     return nullptr;
 }
-
-ModManager* mod();
 
 }
 }

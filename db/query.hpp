@@ -3,6 +3,8 @@
 #include <QList>
 #include <QSharedPointer>
 #include "condition.hpp"
+#include "driver.hpp"
+#include "row.hpp"
 
 namespace Qk
 {
@@ -16,8 +18,9 @@ class IRow;
 
 class IQuery
 {
-public:
+protected:
     IQuery(const ITable* pTable, QList<IField*> pFields, Driver* pDrv);
+public:
     virtual ~IQuery();
 
 public:
@@ -26,10 +29,13 @@ public:
     const Condition& condition() const { return mCondition; }
     quint32 limitCount() const { return mLimitCount; }
     quint64 limitOffset() const { return mLimitOffset; }
-    IQuery& limit(quint64 pOffset, quint32 pCount);
-    IQuery& limit(quint32 pCount);
-    IQuery& order(IField* pField, Qt::SortOrder pOrder = Qt::AscendingOrder);
     IRow one();
+    QList<IRow> list();
+    IQuery& where(const Condition& pCondition)
+    {
+        mCondition = pCondition;
+        return *this;
+    }
 
 protected:
     const ITable* mTable = 0;
@@ -51,14 +57,60 @@ public:
     }
 
 public:
+    const TTable* table() const { return static_cast<const TTable*>(mTable); }
+    Query<TTable>& limit(quint64 pOffset, quint32 pCount) { mLimitOffset = pOffset; mLimitCount = pCount; return *this; }
+    Query<TTable>& limit(quint32 pCount) { mLimitOffset = 0; mLimitCount = pCount; return *this; }
+    template<class TField>
+    Query<TTable>& order(TField& pField, Qt::SortOrder pOrder = Qt::AscendingOrder) {
+        static_assert(std::is_same<typename TField::Table, TTable>::value, "Type of model for this field must be the same as row's model");
+        mSort[&pField] = pOrder;
+        return *this;
+    }
+
     Query<TTable>& where(const Condition& pCondition)
     {
         mCondition = pCondition;
         return *this;
     }
-    typename TTable::Row one()
+
+    typename TTable::RowType one()
     {
-        return typename TTable::Row(IQuery::one());
+        mLimitCount = 1;
+        int sz = 0;
+        typename TTable::RowType row(table());
+        mDriver->query(*this, &sz, [&row](const QSqlRecord& pRecord) {
+            row.load(pRecord);
+        });
+        return sz == 0 ? typename TTable::RowType(nullptr) : row;
+    }
+
+    QList<typename TTable::RowType> list()
+    {
+        return listTemplate<typename TTable::RowType>();
+    }
+
+    void iterate(const std::function<void(typename TTable::RowType)>& pFunc)
+    {
+        mDriver->query(*this, 0, [&](const QSqlRecord& pRecord) {
+            typename TTable::RowType row(table());
+            row.load(pRecord);
+            pFunc(row);
+        });
+    }
+
+private:
+    template<class T>
+    QList<T> listTemplate()
+    {
+        QList<T> list;
+        int sz = 0;
+        mDriver->query(*this, &sz, [&](const QSqlRecord& pRecord) {
+            list.reserve(sz);
+            typename TTable::RowType row(table());
+            row.load(pRecord);
+            list.append(row);
+        });
+        return list;
     }
 };
 

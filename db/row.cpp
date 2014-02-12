@@ -13,7 +13,7 @@ IRow::IRow()
 {
 }
 
-IRow::IRow(const ITable& pTable, RowState::Value pState)
+IRow::IRow(const ITable* pTable, RowState::Value pState)
     : mData(new Data(pTable, pState))
 {
     reset();
@@ -74,6 +74,35 @@ QVariant IRow::primaryValue() const
 {
     ASSERTPTR(mData->mTable);
     return table() ? get(*table()->primaryField()) : QVariant();
+}
+
+void IRow::serialize(Formatter &pFmt) const
+{
+    ASSERTPTR(mData->mTable);
+    foreach (IField* fld, table()->fields())
+    {
+        pFmt.write(fld->name(), get(fld));
+    }
+}
+
+QVariant IRow::lazyFetch(const IField *pField) const
+{
+    ASSERTPTR(mData->mTable);
+    QVariant v = mData->mFK.value(pField);
+    if (v.isValid()) return v;
+    v = mData->mValues.value(pField);
+    if (!v.isValid() || v.isNull() || v.type() != pField->linkedTo()->primaryField()->type()) return v;
+    IRow r = pField->linkedTo()->select().where(*pField->linkedTo()->primaryField() == v).one();
+    if (r.state() == RowState::Original)
+    {
+        v = pField->linkedTo()->rowToVariant(r);
+        mData->mFK[pField] = v;
+    }
+    else
+    {
+        v = QVariant();
+    }
+    return v;
 }
 
 void IRow::save(Driver* pDrv)
