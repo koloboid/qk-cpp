@@ -2,9 +2,12 @@
 
 #include <QString>
 #include <QVariant>
+#include <QDateTime>
+#include <qk/core/error.hpp>
 #include "fieldflag.hpp"
-//#include "row.hpp"
 #include "condition.hpp"
+
+using namespace Qk::Core;
 
 namespace Qk {
 namespace Db {
@@ -30,13 +33,16 @@ public:
     QVariant defaultValue() const { return mDefaultVariant; }
     ITable* linkedTo() const { return mLinkedTo; }
     ITable* table() const { return mTable; }
-//    QVariant get(const IRow& pRow) const { return pRow.get(*this); }
+    QString tableName() const;
     bool readOnly() const { return mReadOnly; }
-    virtual void init() = 0;
     inline Condition operator==(const QVariant& pValue) const { return Condition(this, Condition::OpEqual, pValue); }
+
+    virtual void init() = 0;
+    virtual Error validateValue(const QVariant& pValue, bool pThrow = true) const = 0;
 
 protected:
     void initLinkedTo(const char* pTabName);
+    static Error throwNow(bool pThrow, const QString& pMessage);
 
 protected:
     QString mName;
@@ -56,7 +62,7 @@ template<class TTable, class TType, bool TReadOnly = false>
 class Field : public IField
 {
 public:
-    static constexpr bool IsFK = false;
+    static constexpr const bool IsFK = false;
 
 public:
     typedef TType Type;
@@ -74,14 +80,16 @@ public:
 public:
     Field& title(const QString& pTitle) { mTitle = pTitle; return *this; }
     Field& description(const QString& pDescription) { mDescription = pDescription; return *this; }
-    Field& flag(EFieldFlag pFlag) { mFlag = (EFieldFlag)(mFlag | pFlag); return *this; }
+    Field& addFlag(EFieldFlag pFlag) { mFlag = (EFieldFlag)(mFlag | pFlag); return *this; }
     Field& flags(EFieldFlag pFlag) { mFlag = pFlag; return *this; }
     Field& min(const QVariant pMin) { mMinVariant = pMin; return *this; }
     Field& max(const QVariant pMax) { mMaxVariant = pMax; return *this; }
     Field& minmax(const QVariant& pMin, const QVariant& pMax) { mMaxVariant = pMax; mMinVariant = pMin; return *this; }
     Field& defaultValue(const TType& pValue) { mDefaultVariant = QVariant::fromValue<TType>(pValue); return *this; }
     TTable* table() const { return static_cast<TTable*>(mTable); }
+
     virtual void init();
+    virtual Error validateValue(const QVariant& pValue, bool pThrow = true) const override;
 
 public:
     inline Condition operator==(const TType& pValue) const { return Condition(this, Condition::OpEqual, QVariant::fromValue<TType>(pValue)); }
@@ -104,6 +112,9 @@ public:
 
 public:
     inline QList<typename TTable::RowType> fetch(const TType& pRow, Driver* pDrv = 0) const;
+
+public:
+    inline Condition operator==(const TType& pValue) const { return Condition(this, Condition::OpEqual, QVariant::fromValue<TType>(pValue)); }
 };
 
 namespace Traits
@@ -126,6 +137,46 @@ public:
     static constexpr const char* get() { return TFieldType::TableType::tableName; }
 };
 
+template<class TType>
+inline Error validateWithOperators(const QVariant &pValue, const IField* pFld)
+{
+    TType v = pValue.value<TType>();
+    if (pFld->max().isValid() && pFld->min().isValid())
+    {
+        if (v < pFld->min().value<TType>() || v > pFld->max().value<TType>())
+            return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть между '%3' и '%4'")
+                             .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->min().toString()).arg(pFld->max().toString()));
+    }
+    else
+    {
+        if (pFld->max().isValid())
+        {
+            if (v > pFld->max().value<TType>()) return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть меньше чем '%3'")
+                                                 .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->max().toString()));
+        }
+        if (pFld->min().isValid())
+        {
+            if (v < pFld->min().value<TType>()) return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть больше чем '%3'")
+                                                 .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->min().toString()));
+        }
+    }
+    return Error();
+}
+
+template<class TType>
+class Validator
+{
+public:
+    static inline Error test(const QVariant &pValue, const IField* pFld) { return validateWithOperators<TType>(pValue, pFld); }
+};
+
+template<>
+class Validator<QString>
+{
+public:
+    static inline Error test(const QVariant &pValue, const IField* pFld) { return validateWithOperators<int>(pValue.toString().size(), pFld); }
+};
+
 }
 
 template<class TTable, class TType, bool TReadOnly>
@@ -134,6 +185,14 @@ void Field<TTable, TType, TReadOnly>::init()
     typedef typename std::conditional<std::is_convertible<TType, IRow>::value, ITable*, Traits::DummyName>::type TableType;
     const char* tabname = Traits::TableLink<TType, TableType>::get();
     initLinkedTo(tabname);
+}
+
+template<class TTable, class TType, bool TReadOnly>
+Error Field<TTable, TType, TReadOnly>::validateValue(const QVariant &pValue, bool pThrow) const
+{
+    Error err = Traits::Validator<TType>::test(pValue, this);
+    if (pThrow && err.hasError()) throw err;
+    return Error();
 }
 
 template<class TTable, class TType, bool TReadOnly>

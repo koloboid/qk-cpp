@@ -39,6 +39,7 @@ QString LogBase::getBacktrace(quint8 pMaxSize)
                 else line = "";
                 free(name);
             }
+            line = line.replace(qApp->applicationDirPath(), "");
             if (!line.isEmpty())
             {
                 mBacktrace.append(line);

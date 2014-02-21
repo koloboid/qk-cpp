@@ -16,7 +16,7 @@ IRow::IRow()
 IRow::IRow(const ITable* pTable, RowState::Value pState)
     : mData(new Data(pTable, pState))
 {
-    reset();
+    if (table()) reset();
 }
 
 IRow::~IRow()
@@ -34,8 +34,20 @@ void IRow::reset()
 
 QList<Error> IRow::validate() const
 {
-    ASSERTPTR(mData->mTable)
+    ASSERTPTR(mData->mTable);
     QList<Error> rv;
+    foreach (IField* fld, table()->fields())
+    {
+        try
+        {
+            fld->validateValue(mData->mValues[fld]);
+        }
+        catch (Error& err)
+        {
+            rv.append(err);
+        }
+    }
+
     return rv;
 }
 
@@ -76,13 +88,27 @@ QVariant IRow::primaryValue() const
     return table() ? get(*table()->primaryField()) : QVariant();
 }
 
-void IRow::serialize(Formatter &pFmt) const
+bool IRow::serialize(Formatter& pFmt, const QString& pObjectName, int pLazyFetchDeep) const
 {
+    if (pLazyFetchDeep <= 0) return false;
+    pFmt.startObject(pObjectName);
     ASSERTPTR(mData->mTable);
     foreach (IField* fld, table()->fields())
     {
-        pFmt.write(fld->name(), get(fld));
+        if (fld->flags() & EFieldFlag::NonSerializable) continue;
+        QVariant v = get(fld, pLazyFetchDeep > 1);
+        if (pLazyFetchDeep > 1 && fld->linkedTo())
+        {
+            IRow row = fld->linkedTo()->rowFromVariant(v);
+            if (row.state() != RowState::Original || !row.serialize(pFmt, fld->name(), pLazyFetchDeep - 1))
+            {
+                pFmt.write(fld->name(), v);
+            }
+        }
+        else pFmt.write(fld->name(), v);
     }
+    pFmt.endObject();
+    return true;
 }
 
 QVariant IRow::lazyFetch(const IField *pField) const

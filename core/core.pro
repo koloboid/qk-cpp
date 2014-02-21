@@ -29,7 +29,8 @@ SOURCES += \
     formatterjson.cpp \
     formatterxml.cpp \
     qkapplication.cpp \
-    formatter.cpp
+    formatter.cpp \
+    serializable.cpp
 
 HEADERS += \
     valref.hpp \
@@ -50,7 +51,8 @@ HEADERS += \
     qkapplication.hpp \
     formatterjson.hpp \
     formatterxml.hpp \
-    formatter.hpp
+    formatter.hpp \
+    serializable.hpp
 
 unix:!symbian {
     maemo5 {

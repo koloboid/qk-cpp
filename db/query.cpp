@@ -38,6 +38,14 @@ IRow IQuery::one()
 
 QList<IRow> IQuery::list()
 {
+    int sz = 0;
+    QList<IRow> list;
+    mDriver->query(*this, &sz, [&](const QSqlRecord& pRecord) {
+        IRow row(table());
+        row.load(pRecord);
+        list.append(row);
+    });
+    return list;
 }
 
 }

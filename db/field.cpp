@@ -25,6 +25,11 @@ IField::~IField()
 {
 }
 
+QString IField::tableName() const
+{
+    return table()->name();
+}
+
 void IField::initLinkedTo(const char* pTabName)
 {
     mLinkedTo = table()->db()->getTable(pTabName);
@@ -35,6 +40,12 @@ void IField::initLinkedTo(const char* pTabName)
             mFlag = mFlag | FieldFlag::RefStrong;
         }
     }
+}
+
+Error IField::throwNow(bool pThrow, const QString &pMessage)
+{
+    if (pThrow) throw Error(ERRLOC, pMessage);
+    else return Error(ERRLOC, pMessage);
 }
 
 }

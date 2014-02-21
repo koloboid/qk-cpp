@@ -10,7 +10,7 @@ using namespace Qk::Db;
 
 namespace Qk {
 namespace DbRpc {
-/*
+
 // exposes public api for data table.
 // working on path /tableName/methodName
 
@@ -32,7 +32,7 @@ public:
     virtual void insert(Context* pCtx);
     virtual void update(Context* pCtx);
     virtual void remove(Context* pCtx);*/
-  /*  QKRPC virtual void schema(Context* pCtx);
+    QKRPC virtual void schema(Context* pCtx);
 
 private:
     QRegExp mPath;
@@ -60,9 +60,9 @@ void TableHandler<TTable>::get(Context* pCtx)
         {
             TTable::select(fields).where().limit(from, count).order(order, dir == "desc" ? ES).list(pCtx->out());
         }*/
-    /*});
+    });
 }
-
+/*
 template<class TTable>
 void TableHandler<TTable>::schema(Context* pCtx)
 {

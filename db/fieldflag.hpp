@@ -31,6 +31,7 @@ public:
         DontSelectDefault =    0x00010000,
         ReadOnly =             0x00020000,
         AllowNull =            0x00040000,
+        NonSerializable =      0x00080000,
     };
 
     QKFLAG(Value)

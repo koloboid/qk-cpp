@@ -66,7 +66,7 @@ public:
     const ITable* table() const { return mData->mTable; }
     bool operator!() const { return state() == RowState::Invalid || mData->mTable == nullptr; }
     RowState::Value state() const { return mData->mState; }
-    void serialize(Formatter& pFmt) const;
+    bool serialize(Formatter& pFmt, const QString &pObjectName, int pLazyFetchDeep = 1) const;
 
 protected:
     QVariant lazyFetch(const IField* pField) const;
@@ -117,6 +117,14 @@ public:
 
 public:
     template<class TField>
+    QList<typename TField::Table::RowType> getLinked(const TField& pField) const
+    {
+        static_assert(std::is_same<typename TField::Type::TableType, TTable>::value, "Type of model for this field must be the same as row's model");
+        return pField.table()->select().where(pField == typename TTable::RowType(*this)).list();
+        //return QList<typename TField::Type>();
+    }
+
+    template<class TField>
     typename TField::Type get(const TField& pField, bool pLazyFetch = true) const
     {
         static_assert(std::is_same<typename TField::Table, TTable>::value, "Type of model for this field must be the same as row's model");
@@ -145,6 +153,9 @@ public:
     }
 
     const TTable* table() const { return static_cast<const TTable*>(IRow::table()); }
+
+    bool operator>(const typename TTable::RowType&) const { return false; }
+    bool operator<(const typename TTable::RowType&) const { return false; }
 
 protected:
     template<class TField>

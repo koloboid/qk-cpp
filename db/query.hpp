@@ -86,7 +86,15 @@ public:
 
     QList<typename TTable::RowType> list()
     {
-        return listTemplate<typename TTable::RowType>();
+        QList<typename TTable::RowType> list;
+        int sz = 0;
+        mDriver->query(*this, &sz, [&](const QSqlRecord& pRecord) {
+            list.reserve(sz);
+            typename TTable::RowType row(table());
+            row.load(pRecord);
+            list.append(row);
+        });
+        return list;
     }
 
     void iterate(const std::function<void(typename TTable::RowType)>& pFunc)
@@ -96,21 +104,6 @@ public:
             row.load(pRecord);
             pFunc(row);
         });
-    }
-
-private:
-    template<class T>
-    QList<T> listTemplate()
-    {
-        QList<T> list;
-        int sz = 0;
-        mDriver->query(*this, &sz, [&](const QSqlRecord& pRecord) {
-            list.reserve(sz);
-            typename TTable::RowType row(table());
-            row.load(pRecord);
-            list.append(row);
-        });
-        return list;
     }
 };
 

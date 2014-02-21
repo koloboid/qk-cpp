@@ -41,7 +41,6 @@ void QkApplication::runApp()
     log()->addStdLoggers();
     log()->start();
     log()->installQtHandler();
-    log()->installSysSignalHandler();
     log()->info(applicationName() + " loaded.");
     log()->appendSystemInfo().direct();
 
