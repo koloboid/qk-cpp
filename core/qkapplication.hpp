@@ -12,7 +12,7 @@ class QkApplication : public QCoreApplication
     Q_OBJECT
 
 public:
-    QkApplication(int& pArgc, char** pArgv, const QString& pAppName, const QString& pCompanyName);
+    QkApplication(int& pArgc, char** pArgv, const QString& pCompanyName, const QString& pAppName);
 
 public:
     virtual int exec();

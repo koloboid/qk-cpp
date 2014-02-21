@@ -9,7 +9,7 @@ namespace Qk
 namespace Core
 {
 
-QkApplication::QkApplication(int& pArgc, char** pArgv, const QString& pAppName, const QString& pCompanyName)
+QkApplication::QkApplication(int& pArgc, char** pArgv, const QString& pCompanyName, const QString& pAppName)
     : QCoreApplication(pArgc, pArgv)
 {
     setApplicationName(pAppName);

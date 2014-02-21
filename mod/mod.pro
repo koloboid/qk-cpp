@@ -8,9 +8,9 @@ QT       -= gui
 
 TARGET = qk.mod
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += staticlib c++11
 INCLUDEPATH += ../../
-QMAKE_CXXFLAGS += -std=c++0x -Wall
+QMAKE_CXXFLAGS += -Wall
 
 unix:!symbian {
     maemo5 {
@@ -23,8 +23,8 @@ unix:!symbian {
 
 SOURCES += \
     modmanager.cpp \
-    ctimemodule.cpp
+    compiletimemodule.cpp
 
 HEADERS += \
     modmanager.hpp \
-    ctimemodule.hpp
+    compiletimemodule.hpp

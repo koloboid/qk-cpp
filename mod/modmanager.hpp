@@ -1,7 +1,7 @@
 #pragma once
 #include <QMap>
 #include <QString>
-#include "ctimemodule.hpp"
+#include "compiletimemodule.hpp"
 
 namespace Qk
 {
@@ -11,21 +11,21 @@ namespace Mod
 class ModManager
 {
 public:
-    template<class TModule, bool pEnabled>
+    template<class TModule>
     TModule* createModule();
     void init();
     void run();
-    QMap<QString, CTimeModule*> modules() const { return mModules; }
+    QMap<QString, ICompileTimeModule*> modules() const { return mModules; }
 
 private:
-    QMap<QString, CTimeModule*> mModules;
+    QMap<QString, ICompileTimeModule*> mModules;
 };
 
-template<class TModule, bool pEnabled>
+template<class TModule>
 TModule* ModManager::createModule()
 {
-    static_assert(std::is_base_of<Qk::Mod::CTimeModule, TModule>::value, "TModule must be derived from Qk::Mod::CTimeModule");
-    if (pEnabled)
+    static_assert(std::is_base_of<Qk::Mod::ICompileTimeModule, TModule>::value, "TModule must be derived from Qk::Mod::CompileTimeModule");
+    if (TModule::Enabled)
     {
         TModule* m = new TModule();
         mModules[m->fullName()] = m;

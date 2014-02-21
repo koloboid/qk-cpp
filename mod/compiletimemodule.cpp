@@ -1,4 +1,4 @@
-#include "ctimemodule.hpp"
+#include "compiletimemodule.hpp"
 #include <qk/core/log.hpp>
 
 using namespace Qk::Core;
@@ -8,23 +8,23 @@ namespace Qk
 namespace Mod
 {
 
-CTimeModule::CTimeModule(const QString& pProjectName, const QString& pModName)
+ICompileTimeModule::ICompileTimeModule(const QString& pProjectName, const QString& pModName)
     : mModName(pModName), mProjectName(pProjectName)
 {
 
 }
 
-CTimeModule::~CTimeModule()
+ICompileTimeModule::~ICompileTimeModule()
 {
 
 }
 
-void CTimeModule::init()
+void ICompileTimeModule::init()
 {
-    log()->info(TR("Модуль '%1' инициализирован").arg(name()));
+    log()->info(TR("Модуль '%1' инициализирован").arg(fullName()));
 }
 
-void CTimeModule::run()
+void ICompileTimeModule::run()
 {
 }
 

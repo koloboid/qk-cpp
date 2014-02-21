@@ -45,7 +45,7 @@ public:
     virtual QString appHelp();
     QAbstractItemModel* model();
 
-    virtual bool loadFromDefaultLocations();
+    virtual bool loadFromDefaultLocations(const QString &pFileName = "main.json");
     void loadJSON(const QString& pFileName);
     void loadJSONText(const QString& pJSON);
     QString saveJSON(const QString& pFileName = "");

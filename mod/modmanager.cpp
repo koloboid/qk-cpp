@@ -7,7 +7,7 @@ namespace Mod
 
 void ModManager::init()
 {
-    foreach (CTimeModule* mod, mModules.values())
+    foreach (ICompileTimeModule* mod, mModules.values())
     {
         mod->init();
     }
@@ -15,7 +15,7 @@ void ModManager::init()
 
 void ModManager::run()
 {
-    foreach (CTimeModule* mod, mModules.values())
+    foreach (ICompileTimeModule* mod, mModules.values())
     {
         mod->run();
     }

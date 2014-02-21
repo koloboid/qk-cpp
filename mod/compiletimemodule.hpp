@@ -7,11 +7,11 @@ namespace Qk
 namespace Mod
 {
 
-class CTimeModule
+class ICompileTimeModule
 {
 public:
-    CTimeModule(const QString& pProjectName, const QString& pModName);
-    virtual ~CTimeModule();
+    ICompileTimeModule(const QString& pProjectName, const QString& pModName);
+    virtual ~ICompileTimeModule();
 
 public:
     QString name() const { return mModName; }
@@ -23,6 +23,19 @@ public:
 private:
     QString mModName;
     QString mProjectName;
+};
+
+template<bool TEnabled>
+class CompileTimeModule : public ICompileTimeModule
+{
+public:
+    static constexpr const bool Enabled = TEnabled;
+
+public:
+    CompileTimeModule(const QString& pProjectName, const QString& pModName)
+        : ICompileTimeModule(pProjectName, pModName)
+    {
+    }
 };
 
 }

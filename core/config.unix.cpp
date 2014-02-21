@@ -6,14 +6,16 @@ namespace Qk
 namespace Core
 {
 
-bool Config::loadFromDefaultLocations()
+bool Config::loadFromDefaultLocations(const QString& pFileName)
 {
     Config::init();
 
-    loadFile(QString("/etc/%1/%2/main.json").arg(QCoreApplication::organizationName()).arg(QCoreApplication::applicationName()));
-    loadFile(QString("%1/.config/%2/%3/main.json").arg(QDir::homePath()).arg(QCoreApplication::organizationName()).arg(QCoreApplication::applicationName()));
+    loadFile(QString("/etc/%1/%2/%3").arg(QCoreApplication::organizationName()).arg(QCoreApplication::applicationName())
+             .arg(pFileName));
+    loadFile(QString("%1/.config/%2/%3/%4").arg(QDir::homePath()).arg(QCoreApplication::organizationName())
+             .arg(QCoreApplication::applicationName()).arg(pFileName));
     loadFile(QCoreApplication::applicationDirPath() + "./main.json");
-    loadFile("./main.json");
+    loadFile("./" + pFileName);
 
     if (Config::processCmdLine(QCoreApplication::arguments()))
     {
