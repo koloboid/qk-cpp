@@ -34,7 +34,7 @@ public:
     template<class TThis>
     void addSyncHandler(const QRegExp& pPath, TThis* pThis, HandlerProc<TThis> pProc)
     {
-        addHandler(pPath, new HandlerFunctor<TThis>(this, pPath, pThis, pProc, false));
+        addHandler(pPath, new HandlerFunctor<TThis>(this, pThis, pProc, false));
     }
     void addSyncHandler(const QRegExp& pPath, const std::function<void(Context*)>& pFunc)
     {

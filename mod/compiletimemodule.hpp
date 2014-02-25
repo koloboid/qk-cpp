@@ -19,6 +19,7 @@ public:
     QString fullName(const QString& pDivider = ".") const { return mProjectName + pDivider + mModName; }
     virtual void init();
     virtual void run();
+    virtual bool needAuthorization() const { return true; }
 
 private:
     QString mModName;
