@@ -14,6 +14,24 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Rpc {
 
+class SrvLogLevel : public Enum
+{
+    Q_OBJECT
+
+public:
+    enum Value
+    {
+        None            = 0x00,
+        Requests        = 0x01,
+        RequestData     = 0x02,
+        RequestRawData  = 0x04,
+        ResponseData    = 0x08,
+        All             = 0xFF
+    };
+    QKFLAG(Value)
+};
+QKENUMDECL(SrvLogLevel::Value, ESrvLogLevel)
+
 class Server : public QObject
 {
     Q_OBJECT
@@ -27,6 +45,9 @@ public:
 public:
     void addTransport(Transport* pTransport);
     void removeTransport(Transport* pTransport);
+
+    ESrvLogLevel logLevel() const { return mLogLevel; }
+    void logLevel(ESrvLogLevel pLevel) { mLogLevel = pLevel; }
 
     template<class THandler>
     void addHandler(const QRegExp& pPath) { addHandler(pPath, new THandler(this)); }
@@ -68,6 +89,8 @@ private:
     QList<QPair<QRegExp, Handler*>> mHandlers;
     QList<Transport*> mTransport;
     bool mInitialized = false;
+    quint32 mRequestCounter = 0;
+    ESrvLogLevel mLogLevel = SrvLogLevel::Requests;
 };
 
 }

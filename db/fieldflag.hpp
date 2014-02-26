@@ -32,6 +32,7 @@ public:
         ReadOnly =             0x00020000,
         AllowNull =            0x00040000,
         NonSerializable =      0x00080000,
+        CaseInsensitive =      0x00100000,
     };
 
     QKFLAG(Value)

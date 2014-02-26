@@ -16,7 +16,7 @@ Log* rpclog(Log* pParent)
 }
 
 Server::Server(SessionStorage* pSessionStorage)
-    : mSessionStorage(pSessionStorage ? pSessionStorage : new SessionStorageMemory(60000))
+    : mSessionStorage(pSessionStorage ? pSessionStorage : new SessionStorageMemory(600000))
 {
 }
 
@@ -116,7 +116,7 @@ void Server::onRequest(Transport*, Context* pContext) noexcept
     // main server thread
     try
     {
-        pContext->start();
+        pContext->start(mRequestCounter++);
         Session* session = mSessionStorage->getSession(pContext->sessionId());
         pContext->setSession(session);
         session->requestStart(pContext);
@@ -139,13 +139,11 @@ void Server::onRequest(Transport*, Context* pContext) noexcept
         }
         if (hdl)
         {
-            QElapsedTimer tmr;
-            tmr.start();
             hdl->processRequestInternal(pContext);
-            if (tmr.elapsed() > 1000)
+            if (pContext->elapsed() > 1000)
             {
                 pContext->log()->warn(tr("Обработчик '%1' занял %2мс времени серверного потока. Произошла блокировка работы сервера. Переведите обработчик в асинхронный режим")
-                                      .arg(path).arg(tmr.elapsed()));
+                                      .arg(path).arg(pContext->elapsed()));
             }
         }
         else

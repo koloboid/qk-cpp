@@ -27,18 +27,23 @@ public:
     bool isNew() const { return mProcessedRequestCount == 0; }
     QDateTime lastRequestTime() const { return mLastRequestTime; }
     bool isLocked() const { return mLocked; }
-    Log* log() { return &mLog; }
     void abandon();
 
     void requestStart(Context* pCtx);
     void requestProcessed(Context* pCtx);
+
+    QVariant get(const QString& pKey) const { return mData.value(pKey); }
+    template<class T>
+    T get(const QString& pKey) const { return mData.value(pKey).value<T>(); }
+    template<class T>
+    Session* set(const QString& pKey, const T& pValue) { mData[pKey] = QVariant::fromValue<T>(pValue); return this; }
 
 private:
     QUuid mID;
     quint32 mProcessedRequestCount = 0;
     QDateTime mLastRequestTime;
     bool mLocked = false;
-    Log mLog;
+    QMap<QString, QVariant> mData;
 };
 
 }

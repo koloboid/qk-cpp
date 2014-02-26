@@ -66,6 +66,7 @@ public:
     const ITable* table() const { return mData->mTable; }
     bool operator!() const { return state() == RowState::Invalid || mData->mTable == nullptr; }
     RowState::Value state() const { return mData->mState; }
+    QList<const IField*> changedFields() const { return mData->mChangedFields; }
     bool serialize(Formatter& pFmt, const QString &pObjectName, int pLazyFetchDeep = 1) const;
 
 protected:
@@ -78,6 +79,7 @@ private:
     public:
         const ITable* mTable;
         QMap<const IField*, QVariant> mValues;
+        QList<const IField*> mChangedFields;
         RowState::Value mState;
         mutable QMap<const IField*, QVariant> mFK;
 
@@ -177,3 +179,15 @@ Q_DECLARE_METATYPE(Qk::Db::IRow)
     pRowClass() : pBaseClass() { } \
     explicit pRowClass(const IRow& pRow) : pBaseClass(pRow) { } \
     pRowClass(const typename pBaseClass::TableType* pTable) : pBaseClass(pTable) { };
+
+
+#define QKROWACCESSOR(pType, pName) \
+public: \
+    inline void pName(const pType& pVal) { this->set(table()->pName, pVal); } \
+    inline pType pName() const { return this->get(table()->pName); }
+
+#define QKROWACCESSORRO(pType, pName) \
+public: \
+    inline pType pName() const { return this->get(this->table()->pName); } \
+protected: \
+    inline void pName(const pType& pVal) { this->setPrivate(this->table()->pName, pVal); }

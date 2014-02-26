@@ -7,11 +7,5 @@ using namespace Qk::Core;
 namespace Qk {
 namespace Rpc {
 
-class HttpPostFormatter : public Formatter
-{
-public:
-    HttpPostFormatter();
-};
-
 }
 }

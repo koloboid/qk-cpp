@@ -29,18 +29,27 @@ signals:
 
 protected:
     virtual void finish() override;
-    virtual void start() override;
+    virtual void start(quint32 pRequestID) override;
+    virtual void handlerStart(Handler* pHandler) override;
+    virtual QByteArray requestRawData() const override { return mRequestRawData; }
+    virtual QString requestContentType() const override;
     void setCookie(const QString& pName, const QString& pVal, const QString& pPath, const QString& pDomain = QString(),
                    bool pHttpOnly = true, bool pSecure = false);
 
 protected slots:
     void sendResponse();
     void connectionTerminated();
+    void parseRequest();
+    void parsePostData();
+    void parseJsonData();
+    void parseXmlData();
 
 private:
     HttpServerRequest* mReq;
     HttpServerResponse* mResp;
     QMap<QString, QNetworkCookie> mCookieMap;
+    QByteArray mRequestRawData;
+    mutable QString mContentType;
 };
 
 }

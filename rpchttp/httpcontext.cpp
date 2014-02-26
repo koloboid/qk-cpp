@@ -1,10 +1,13 @@
 #include <QUuid>
 #include <QUrl>
 #include <QBuffer>
+#include <QUrlQuery>
+#include <QTextCodec>
 #include <tufao-1/Tufao/Headers>
 #include <qk/core/formatterjson.hpp>
 #include <qk/core/formatterxml.hpp>
 #include <qk/core/log.hpp>
+#include <qk/rpc/server.hpp>
 #include "httpcontext.hpp"
 
 using namespace Qk::Core;
@@ -47,7 +50,8 @@ QNetworkCookie HttpContext::getCookie(const QString& pCookieName)
 
     if (mCookieMap.isEmpty())
     {
-        QList<QNetworkCookie> list = QNetworkCookie::parseCookies(mReq->headers().value("Cookie"));
+        QByteArray arr = mReq->headers().value("Cookie");
+        QList<QNetworkCookie> list = QNetworkCookie::parseCookies(arr.replace(';', '\n'));
         foreach (QNetworkCookie cookie, list)
         {
             mCookieMap[cookie.name()] = cookie;
@@ -60,14 +64,40 @@ void HttpContext::finish()
 {
     // handler thread
     Context::finish();
+    if (server()->logLevel() & SrvLogLevel::RequestRawData)
+    {
+        FormatterJson json;
+        foreach (QByteArray key, mReq->headers().keys())
+        {
+            json.write(QString(key), QString(mReq->headers().value(key)));
+        }
+
+        mFinishLogItem.arg("Headers", QString(json.getResult()));
+    }
     emit onFinish();
 }
 
-void HttpContext::start()
+void HttpContext::start(quint32 pRequestID)
 {
     ASSERTPTR(mReq);
 
-    Context::start();
+    mRequestRawData = mReq->readBody();
+    Context::start(pRequestID);
+}
+
+void HttpContext::handlerStart(Handler *pHandler)
+{
+    Context::handlerStart(pHandler);
+    parseRequest();
+}
+
+QString HttpContext::requestContentType() const
+{
+    if (mContentType.isEmpty())
+    {
+        mContentType = mReq->headers().value("Content-Type").toLower();
+    }
+    return mContentType;
 }
 
 void HttpContext::setCookie(const QString& pName, const QString& pVal, const QString& pPath, const QString& pDomain, bool pHttpOnly, bool pSecure)
@@ -107,6 +137,65 @@ void HttpContext::connectionTerminated()
     // main server thread
     mResp = nullptr;
     mReq = nullptr;
+}
+
+void HttpContext::parseRequest()
+{
+    if (mReq->url().hasQuery())
+    {
+        QUrlQuery q(mReq->url());
+        foreach (auto item, q.queryItems())
+        {
+            mRequestData[item.first] = item.second;
+        }
+    }
+    QString type = requestContentType();
+    if (type.contains("application/x-www-form-urlencoded"))
+    {
+        parsePostData();
+    }
+    else if (type.contains("application/json"))
+    {
+        parseJsonData();
+    }
+    else if (type.contains("application/xml"))
+    {
+        parseXmlData();
+    }
+}
+
+void HttpContext::parsePostData()
+{
+    QString type = requestContentType();
+    int csidx = type.indexOf("charset=");
+    QTextCodec* codec = nullptr;
+    if (csidx >= 0)
+    {
+        int csend = type.indexOf(";", csidx);
+        csidx += 8;
+        QString charset = type.mid(csidx, csend - csidx);
+        codec = QTextCodec::codecForName(charset.toUtf8().data());
+    }
+    if (!codec) codec = QTextCodec::codecForName("utf-8");
+    foreach (QByteArray pair, mRequestRawData.split('&'))
+    {
+        QList<QByteArray> expr = pair.split('=');
+        QByteArray key = expr[0];
+        QByteArray val = expr.size() > 1 ? expr[1] : QByteArray();
+        QString skey = QUrl::fromPercentEncoding(key);
+        QString sval = QUrl::fromPercentEncoding(val);
+        mRequestData[skey] = sval;
+    }
+}
+
+void HttpContext::parseJsonData()
+{
+    throw ErrorNotImplemented(ERRLOC);
+}
+
+void HttpContext::parseXmlData()
+{
+    throw ErrorNotImplemented(ERRLOC);
 }
 
 }

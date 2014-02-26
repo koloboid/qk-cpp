@@ -3,9 +3,5 @@
 namespace Qk {
 namespace Rpc {
 
-HttpPostFormatter::HttpPostFormatter()
-{
-}
-
 }
 }

@@ -8,8 +8,9 @@ namespace Qk {
 namespace Rpc {
 
 Context::Context(Server* pServer)
-    : mServer(pServer)
+    : mServer(pServer), mLog(rpclog(), "RPC")
 {
+    mTimer.start();
 }
 
 Context::~Context()
@@ -36,6 +37,7 @@ void Context::doAsync(const std::function<void (Context*)>& pFunc)
 
 void Context::respondError(const QString& pError, quint32 pStatusCode)
 {
+    log()->error(pError);
     mStatusCode = pStatusCode;
     mRespondErrors.append(pError);
 }
@@ -44,6 +46,19 @@ void Context::setSession(Session* pSession)
 {
     ASSERTPTR(pSession);
     mSession = pSession;
+    updateLogHeader();
+}
+
+void Context::updateLogHeader()
+{
+    if (session())
+    {
+        mLog.prepend(QString("RPC[%1][%2] ").arg(requestID()).arg(session()->id().toString().right(8).left(7)));
+    }
+    else
+    {
+        mLog.prepend(QString("RPC[%1] ").arg(requestID()));
+    }
 }
 
 QString Context::statusText() const
@@ -82,12 +97,41 @@ void Context::finish()
         }
     }
     out()->flush();
+
+    if (server()->logLevel() != SrvLogLevel::None)
+    {
+        mFinishLogItem = log()->debug("Request '%1', result=%2, time=%3ms")
+                .arg(path())
+                .arg(mStatusCode)
+                .arg(mTimer.elapsed());
+        if (server()->logLevel() & SrvLogLevel::RequestData)
+        {
+            FormatterJson json;
+            json.writeMap(this->requestContentType(), mRequestData);
+            mFinishLogItem.arg("RequestData", QString(json.getResult()));
+        }
+        if (server()->logLevel() & SrvLogLevel::RequestRawData)
+        {
+            mFinishLogItem.arg("RequestRawData", requestRawData());
+        }
+        if (server()->logLevel() & SrvLogLevel::ResponseData)
+        {
+            mFinishLogItem.arg("ResponseData", QString(mResponseBuffer.buffer()));
+        }
+    }
 }
 
-void Context::start()
+void Context::handlerStart(Handler* pHandler)
+{
+    mHandler = pHandler;
+}
+
+void Context::start(quint32 pRequestID)
 {
     // main server thread
 
+    mRequestID = pRequestID;
+    updateLogHeader();
     mResponseBuffer.open(QIODevice::WriteOnly);
     if (path().endsWith(".xml"))
     {

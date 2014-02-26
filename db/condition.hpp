@@ -18,6 +18,7 @@ public:
     enum EOperator
     {
         OpEqual,
+        OpEqualCaseInsensitive,
         OpGreater,
         OpLess,
         OpGreaterOrEqual,

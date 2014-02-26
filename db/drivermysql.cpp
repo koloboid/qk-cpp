@@ -191,8 +191,10 @@ QString DriverMySql::operatorToSql(Condition::EOperator pOperator)
             return " <= ";
         case Condition::OpLike:
             return  " % ";
+        case Condition::OpEqualCaseInsensitive:
+            return  " % ";
         default:
-            return "UNKNOWN";
+            return " UNKNOWN OPERATOR ";
     }
 }
 
@@ -250,6 +252,10 @@ void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
 
     QSqlField fld = pDbRecord.field(pField->name());
     uint mytype = pField->linkedTo() ? pField->linkedTo()->primaryField()->type() : pField->type();
+    if (mytype == QMetaType::QString && !(pField->flags() & EFieldFlag::CaseInsensitive))
+    {
+        mytype = QMetaType::QByteArray;
+    }
     if (!fld.isValid())
     {
         QString code = QString("alter table `%1` add column %2").arg(pField->table()->name()).arg(fieldDefinition(pField));
@@ -437,7 +443,7 @@ QString DriverMySql::typeName(const IField* pField)
         case QMetaType::SChar:
             return "tinyint";
         case QMetaType::QString:
-            return QString("varchar(%1)").arg(pField->max().toString());
+            return "varchar(" + pField->max().toString() + (pField->flags() & EFieldFlag::CaseInsensitive ? ")" : ") BINARY");
         case QMetaType::UShort:
             return "smallint unsigned";
         case QMetaType::UInt:

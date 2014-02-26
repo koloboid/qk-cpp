@@ -5,7 +5,7 @@ namespace Qk {
 namespace Rpc {
 
 Session::Session()
-    : mID(QUuid::createUuid()), mLog(rpclog(), mID.toString().right(8).left(7))
+    : mID(QUuid::createUuid())
 {
 }
 
@@ -15,7 +15,9 @@ Session::~Session()
 
 void Session::abandon()
 {
-    log()->info(tr("Сессия устарела. Дата/время последнего запроса: %1").arg(mLastRequestTime.toString()));
+    rpclog()->info(tr("Сессия '%2' устарела. Дата/время последнего запроса: %1")
+                   .arg(mLastRequestTime.toString())
+                   .arg(mID.toString()));
 }
 
 void Session::requestStart(Context*)

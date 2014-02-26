@@ -79,6 +79,7 @@ IRow&IRow::setPrivate(const IField* pField, const QVariant& pValue)
 {
     mData->mValues[pField] = pValue;
     if (mData->mState == RowState::Original) mData->mState = RowState::Modified;
+    if (!mData->mChangedFields.contains(pField)) mData->mChangedFields.append(pField);
     return *this;
 }
 

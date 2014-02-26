@@ -137,7 +137,7 @@ void Handler::doAsync(Context* pCtx, const std::function<void(Context*)>& pFunc)
 
 void Handler::processRequestInternal(Context* pCtx)
 {
-    pCtx->mHandler = this;
+    pCtx->handlerStart(this);
     if (isAsync(pCtx))
     {
         pCtx->hasAsyncCall(true);

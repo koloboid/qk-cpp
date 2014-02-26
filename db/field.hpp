@@ -93,6 +93,8 @@ public:
 
 public:
     inline Condition operator==(const TType& pValue) const { return Condition(this, Condition::OpEqual, QVariant::fromValue<TType>(pValue)); }
+    inline Condition operator^=(const TType& pValue) const { static_assert(std::is_same<TType, QString>::value, "Case-sensitivity comparison on non-string field is prohibited");
+        return Condition(this, Condition::OpEqualCaseInsensitive, QVariant::fromValue<TType>(pValue)); }
 };
 
 template<class TTable, class TType>

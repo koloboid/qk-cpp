@@ -5,15 +5,9 @@ namespace Qk {
 namespace Core {
 
 FormatterJson::FormatterJson(QIODevice* pOutDevice)
-    : mOut(pOutDevice)
+    : Formatter(pOutDevice)
 {
-    ASSERTPTR(mOut);
     mOut->write("{");
-}
-
-QVariantMap FormatterJson::read()
-{
-    throw ErrorNotImplemented(ERRLOC);
 }
 
 Formatter& FormatterJson::startObject(const QString& pName)

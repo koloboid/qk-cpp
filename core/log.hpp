@@ -86,6 +86,8 @@ public:
     LogLevel levelMask() const;
     QString source() const { return mSource; }
     void source(QString pSource);
+    QString prepend() const { return mPrepend; }
+    void prepend(const QString& pPrepend) { mPrepend = pPrepend; }
 
     LogItem trace(const QString& pMessage = "", const QString& pLocation = "")
         { return append(LogLevel::Trace, pMessage, pLocation); }
@@ -108,7 +110,7 @@ public:
 
     LogItem append(ELogLevel pLevel, const QString& pMessage, const QString& pLocation = "")
     {
-        if (mLevelMask & pLevel) return LogItem(mBase, pLevel, pMessage, pLocation).source(mSource);
+        if (mLevelMask & pLevel) return LogItem(mBase, pLevel, mPrepend + pMessage, pLocation).source(mSource);
         else return LogItem();
     }
     virtual LogItem appendSystemInfo();
@@ -119,6 +121,7 @@ protected:
 private:
     LogBase* mBase;
     QString mSource;
+    QString mPrepend;
     ELogLevel mLevelMask;
 };
 
