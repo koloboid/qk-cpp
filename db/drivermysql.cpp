@@ -46,10 +46,7 @@ DriverMySql::~DriverMySql()
 
 void DriverMySql::connect()
 {
-    if (mDb.isOpen() && mDb.isValid())
-    {
-        disconnect();
-    }
+    disconnect();
     if (!mDb.open())
     {
         throw ErrorDb(ERRLOC, TR("Не удалось подключиться к БД"), mDb.lastError());
@@ -58,13 +55,11 @@ void DriverMySql::connect()
 
 void DriverMySql::disconnect()
 {
+    mPrepared.clear();
+    if (mCurrentQuery.isActive()) mCurrentQuery.clear();
     if (mDb.isOpen())
     {
         mDb.close();
-    }
-    if (QSqlDatabase::contains(connectionName()))
-    {
-        QSqlDatabase::removeDatabase(connectionName());
     }
 }
 
@@ -205,7 +200,7 @@ void DriverMySql::deleteRow(const IRow&)
 
 QVariant DriverMySql::insertRow(const IRow& pRow)
 {
-    QString sql = "insert into %1 (%2) values (%3)";
+    QString sql = "insert into `%1` (%2) values (%3)";
     QString cols = "";
     QString vals = "";
     foreach (IField* fld, pRow.table()->fields())
@@ -233,7 +228,7 @@ QVariant DriverMySql::insertRow(const IRow& pRow)
         }
         if (q.size() <= 0)
         {
-            throw Error(ERRLOC, TR("Невозможно определить последний идентификатор новой строки"));
+            throw ErrorDb(ERRLOC, TR("Невозможно определить идентификатор новой строки"));
         }
         q.next();
         return q.value(0);
@@ -241,9 +236,24 @@ QVariant DriverMySql::insertRow(const IRow& pRow)
     else return QVariant();
 }
 
-void DriverMySql::updateRow(const IRow&)
+void DriverMySql::updateRow(const IRow& pRow)
 {
-    throw ErrorNotImplemented(ERRLOC);
+    QString sql = "update `%1` set %2 where %3";
+    QString names = "";
+    foreach (const IField* fld, pRow.changedFields())
+    {
+        names += fieldName(fld) + "=?,";
+    }
+    QString where = fieldName(pRow.table()->primaryField()) + "=?";
+    sql = sql.arg(pRow.table()->name()).arg(names.left(names.size() - 1)).arg(where);
+    QSqlQuery q = getPreparedQuery(sql);
+    int i = 0;
+    foreach (const IField* fld, pRow.changedFields())
+    {
+        q.bindValue(i++, pRow.get(fld));
+    }
+    q.bindValue(i++, pRow.primaryValue());
+    execSqlQuery(q);
 }
 
 void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
@@ -251,7 +261,7 @@ void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
     ASSERTPTR(pField);
 
     QSqlField fld = pDbRecord.field(pField->name());
-    uint mytype = pField->linkedTo() ? pField->linkedTo()->primaryField()->type() : pField->type();
+    uint mytype = pField->underylingType();
     if (mytype == QMetaType::QString && !(pField->flags() & EFieldFlag::CaseInsensitive))
     {
         mytype = QMetaType::QByteArray;
@@ -293,6 +303,18 @@ void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
 bool DriverMySql::hasRecord()
 {
     return mCurrentQuery.next();
+}
+
+QSqlQuery DriverMySql::getPreparedQuery(const QString& pSql)
+{
+    QSqlQuery q = mPrepared.value(pSql, QSqlQuery(mDb));
+    if (q.isValid()) return q;
+    if (!q.prepare(pSql))
+    {
+        throw ErrorDb(ERRLOC, q);
+    }
+    mPrepared[pSql] = q;
+    return q;
 }
 
 void DriverMySql::doQuery(const QString& pQuery)
@@ -345,7 +367,7 @@ void DriverMySql::commit()
 {
     if (!mInTransaction)
     {
-        throw Error(ERRLOC, TR("Сбой завершения транзакции. Драйвер не находится в состоянии транзакции"));
+        throw ErrorDb(ERRLOC, TR("Сбой завершения транзакции. Драйвер не находится в состоянии транзакции"));
     }
     if (!mDb.commit())
     {
@@ -386,17 +408,22 @@ void DriverMySql::transaction()
 
 qint64 DriverMySql::execSql(const QString& pSql)
 {
-    dblog()->debug(TR("SQL на %1: %2").arg(mDb.connectionName()).arg(pSql));
     QSqlQuery q(mDb);
     if (!q.prepare(pSql))
     {
         throw ErrorDb(ERRLOC, q);
     }
-    if (!q.exec())
+    return execSqlQuery(q);
+}
+
+qint64 DriverMySql::execSqlQuery(QSqlQuery& pQuery)
+{
+    dblog()->debug(TR("SQL на %1: %2").arg(mDb.connectionName()).arg(pQuery.lastQuery()));
+    if (!pQuery.exec())
     {
-        throw ErrorDb(ERRLOC, q);
+        throw ErrorDb(ERRLOC, pQuery);
     }
-    return q.numRowsAffected();
+    return pQuery.numRowsAffected();
 }
 
 QString DriverMySql::fieldDefinition(const IField* pField)
@@ -425,11 +452,7 @@ QString DriverMySql::fieldName(const IField* pField, bool pWithTableName)
 QString DriverMySql::typeName(const IField* pField)
 {
     ASSERTPTR(pField);
-    QMetaType::Type t = pField->type();
-    if (pField->linkedTo())
-    {
-        t = pField->linkedTo()->primaryField()->type();
-    }
+    QMetaType::Type t = pField->underylingType();
     switch (t)
     {
         case QMetaType::QDateTime:
@@ -459,7 +482,7 @@ QString DriverMySql::typeName(const IField* pField)
         case QMetaType::Bool:
             return "bool";
         default:
-            throw Error(ERRLOC, TR("Тип '%1' не поддерживается базой данных").arg(QMetaType::typeName(t)));
+            throw ErrorDb(ERRLOC, TR("Тип '%1' не поддерживается базой данных").arg(QMetaType::typeName(t)));
     }
 }
 

@@ -53,7 +53,7 @@ Formatter& FormatterJson::write(const QString& pName, const QString& pValue)
     writeHead(pName);
     mOut->write("\"");
     QString val = pValue;
-    mOut->write(val.replace("\n", "\\n").toUtf8());
+    mOut->write(escapeStr(val).toUtf8());
     mOut->write("\"");
     return *this;
 }
@@ -64,7 +64,7 @@ Formatter& FormatterJson::write(const QString& pName, const char* pValue)
 
     writeHead(pName);
     mOut->write("\"");
-    mOut->write(QString(pValue).replace("\n", "\\n").toUtf8());
+    mOut->write(escapeStr(pValue).toUtf8());
     mOut->write("\"");
     return *this;
 }
@@ -85,7 +85,7 @@ Formatter& FormatterJson::write(const QString& pName, const QVariant& pValue)
             break;
         default:
             mOut->write("\"");
-            mOut->write(pValue.toString().replace("\n", "\\n").toUtf8());
+            mOut->write(escapeStr(pValue.toString()).toUtf8());
             mOut->write("\"");
             break;
     }
@@ -109,6 +109,12 @@ void FormatterJson::writeHead(const QString& pName)
         mOut->write("\":");
     }
     mState = NeedComma;
+}
+
+QString FormatterJson::escapeStr(const QString& pStr)
+{
+    QString val = pStr;
+    return val.replace("\n", "\\n").replace("\\", "\\\\").replace("\"", "\\\"");
 }
 
 }

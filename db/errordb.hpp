@@ -14,13 +14,18 @@ namespace Db
 class ErrorDb : public Error
 {
 public:
+    ErrorDb(const QString& pLocation, const QString& pMessage)
+        : Error(500, pLocation, pMessage)
+    {
+    }
+
     ErrorDb(const QString& pLocation, const QString& pMessage, const QSqlError& pErr)
-        : Error(pLocation, pMessage, pErr.text())
+        : Error(500, pLocation, pMessage, pErr.text())
     {
     }
 
     ErrorDb(const QString& pLocation, const QSqlQuery& pFailedQuery)
-        : Error(pLocation, TR("Ошибка выполнения запроса '%1'").arg(pFailedQuery.lastQuery()), pFailedQuery.lastError().text())
+        : Error(500, pLocation, TR("Ошибка выполнения запроса '%1'").arg(pFailedQuery.lastQuery()), pFailedQuery.lastError().text())
     {
     }
 };

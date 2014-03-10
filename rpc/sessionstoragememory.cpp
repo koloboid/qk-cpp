@@ -21,7 +21,7 @@ Session* SessionStorageMemory::getSession(QUuid pID)
     {
         if ((quint32)mSessions.size() > mMaxSessionsCount)
         {
-            throw Error(ERRLOC, tr("Максимальное количество сессий достигло предела (%1)").arg(mMaxSessionsCount));
+            throw Error(503, ERRLOC, tr("Максимальное количество сессий достигло предела (%1)").arg(mMaxSessionsCount));
         }
         s = new Session();
         mSessions[s->id()] = s;

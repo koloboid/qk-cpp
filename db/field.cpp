@@ -30,6 +30,31 @@ QString IField::tableName() const
     return table()->name();
 }
 
+QMetaType::Type IField::underylingType() const
+{
+    if (linkedTo())
+    {
+        return linkedTo()->primaryField()->underylingType();
+    }
+    else if (isEnum())
+    {
+        switch (sizeOf())
+        {
+            case 1:
+                return QMetaType::UChar;
+            case 2:
+                return QMetaType::UShort;
+            case 4:
+                return QMetaType::UInt;
+            case 8:
+                return QMetaType::ULongLong;
+            default:
+                return QMetaType::Void;
+        }
+    }
+    else return type();
+}
+
 void IField::initLinkedTo(const char* pTabName)
 {
     mLinkedTo = table()->db()->getTable(pTabName);
@@ -40,12 +65,6 @@ void IField::initLinkedTo(const char* pTabName)
             mFlag = mFlag | FieldFlag::RefStrong;
         }
     }
-}
-
-Error IField::throwNow(bool pThrow, const QString &pMessage)
-{
-    if (pThrow) throw Error(ERRLOC, pMessage);
-    else return Error(ERRLOC, pMessage);
 }
 
 }

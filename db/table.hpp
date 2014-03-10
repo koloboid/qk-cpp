@@ -25,6 +25,8 @@ public:
     QMap<QString, IField*> fields() const { return mFields; }
     IField* field(const QString& pName) const { return mFields.value(pName); }
     IField* primaryField() const { return mPrimaryField; }
+    IField* groupField() const { return mGroupField; }
+    IField* displayField() const { return mDisplayField; }
     virtual IRow rowFromVariant(const QVariant& pVariant) const = 0;
     virtual QVariant rowToVariant(const IRow& pRow) const = 0;
     virtual IRow newRow() const = 0;
@@ -40,6 +42,8 @@ private:
     QString mName;
     Db* mDb = 0;
     IField* mPrimaryField = 0;
+    IField* mGroupField = 0;
+    IField* mDisplayField = 0;
 };
 
 template<class TTable, class TRow>

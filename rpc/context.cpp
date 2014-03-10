@@ -31,17 +31,25 @@ void Context::doAsync(const std::function<void (Context*)>& pFunc)
     }
     else
     {
-        throw Error(ERRLOC, TR("Невозможно выполнить асинхронный переход, т.к. обработчик запроса не определен"));
+        throw Error(500, ERRLOC, TR("Невозможно выполнить асинхронный переход, т.к. обработчик запроса не определен"));
     }
 }
 
+void Context::die(const Error& pError)
+{
+    mError = pError;
+    log()->error(pError);
+    finish();
+}
+
+/*
 void Context::respondError(const QString& pError, quint32 pStatusCode)
 {
     log()->error(pError);
     mStatusCode = pStatusCode;
     mRespondErrors.append(pError);
 }
-
+*/
 void Context::setSession(Session* pSession)
 {
     ASSERTPTR(pSession);
@@ -60,7 +68,7 @@ void Context::updateLogHeader()
         mLog.prepend(QString("RPC[%1] ").arg(requestID()));
     }
 }
-
+/*
 QString Context::statusText() const
 {
     if (mStatusCode >= 500)
@@ -85,16 +93,18 @@ QString Context::statusText() const
     }
     return "Unknown";
 }
+*/
 
 void Context::finish()
 {
-    if (mRespondErrors.size() > 0)
+    if (mFinished) return;
+
+    if (mError.hasError())
     {
-        out()->startArray("errorList");
-        foreach (const QString& err, mRespondErrors)
-        {
-            out()->write("", err);
-        }
+        out()->startObject("error");
+        out()->write("message", mError.message());
+        out()->write("details", mError.details());
+        out()->write("code", mError.code());
     }
     out()->flush();
 
@@ -102,7 +112,7 @@ void Context::finish()
     {
         mFinishLogItem = log()->debug("Request '%1', result=%2, time=%3ms")
                 .arg(path())
-                .arg(mStatusCode)
+                .arg(mError.code())
                 .arg(mTimer.elapsed());
         if (server()->logLevel() & SrvLogLevel::RequestData)
         {
@@ -119,6 +129,7 @@ void Context::finish()
             mFinishLogItem.arg("ResponseData", QString(mResponseBuffer.buffer()));
         }
     }
+    mFinished = true;
 }
 
 void Context::handlerStart(Handler* pHandler)

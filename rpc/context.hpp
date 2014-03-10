@@ -37,13 +37,11 @@ public:
     bool isServerThread();
 
     void doAsync(const std::function<void(Context*)>& pFunc);
-    void respondError(const Error& pError, quint32 pStatusCode = 500) { respondError(pError.message(), pStatusCode); }
-    void respondError(const QString& pError, quint32 pStatusCode = 500);
+    void die(const Error& pError);
 
     Server* server() const { return mServer; }
     Session* session() const { return mSession; }
-    QString statusText() const;
-    quint32 statusCode() const { return mStatusCode; }
+    const Error& error() const { return mError; }
     Log* log() { return &mLog; }
     Formatter* out() { ASSERTPTR(mOut); return mOut; }
     Handler* handler() const { return mHandler; }
@@ -66,11 +64,11 @@ protected:
     void updateLogHeader();
 
 protected:
-    QStringList mRespondErrors;
-    quint32 mStatusCode = 200;
+    Error mError;
     QBuffer mResponseBuffer;
     QMap<QString, QVariant> mRequestData;
     LogItem mFinishLogItem;
+    bool mFinished = false;
 
 private:
     Session* mSession = nullptr;
@@ -112,7 +110,7 @@ T Context::inRequire(const char* pKey, const char* pAlias) const
             v = mRequestData.value(pAlias);
             if (v.isValid()) return v.value<T>();
         }
-        throw Error(ERRLOC, tr("Required argument '%1' is missing").arg(pKey));
+        throw ErrorBadArgument(ERRLOC, tr("Отсутствует обязательный аргумент '%1'").arg(pKey));
     }
 }
 

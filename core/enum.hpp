@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QMetaEnum>
+#include "error.hpp"
 
 namespace Qk
 {
@@ -22,7 +23,7 @@ private:\
     static QMetaEnum getMetaEnum() { return staticMetaObject.enumerator(staticMetaObject.indexOfEnumerator(#pName)); } \
 public: \
     static QString getName(pName pVal, const QString& pDefault = QString()) { auto t = getMetaEnum().valueToKey(pVal); return t ? t : pDefault; }\
-    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return tr(getName(pVal, pDefault).toUtf8().data()); }\
+    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return TR(getName(pVal, pDefault).toUtf8().data()); }\
     static pName getValue(const QString& pVal, pName pDefault = pName()) { bool ok; pName t = (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), &ok); return ok ? t : pDefault; }\
     static pName getValue(const QString& pVal, bool* pOk) { return (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), pOk); }\
     static QList<pName> values() { QList<pName> list; QMetaEnum e = getMetaEnum(); for (int i = 0; i < e.keyCount(); i++) list << (pName)e.value(i); return list; }
@@ -32,7 +33,7 @@ private:\
     static QMetaEnum getMetaEnum() { return staticMetaObject.enumerator(staticMetaObject.indexOfEnumerator(#pName)); } \
 public: \
     static QString getName(pName pVal, const QString& pDefault = QString()) { auto t = getMetaEnum().valueToKey(pVal); return t ? t : pDefault; }\
-    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return tr(getName(pVal, pDefault).toUtf8().data()); }\
+    static QString getTitle(pName pVal, const QString& pDefault = QString()) { return TR(getName(pVal, pDefault).toUtf8().data()); }\
     static pName getValue(const QString& pVal, pName pDefault = pName()) { bool ok; pName t = (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), &ok); return ok ? t : pDefault; }\
     static pName getValue(const QString& pVal, bool* pOk) { return (pName)getMetaEnum().keyToValue(pVal.toUtf8().data(), pOk); }\
     static QList<pName> values() { QList<pName> list; QMetaEnum e = getMetaEnum(); for (int i = 0; i < e.keyCount(); i++) list << (pName)e.value(i); return list; }

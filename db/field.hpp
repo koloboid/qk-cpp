@@ -39,6 +39,9 @@ public:
 
     virtual void init() = 0;
     virtual Error validateValue(const QVariant& pValue, bool pThrow = true) const = 0;
+    virtual bool isEnum() const = 0;
+    virtual int sizeOf() const = 0;
+    QMetaType::Type underylingType() const;
 
 protected:
     void initLinkedTo(const char* pTabName);
@@ -90,6 +93,8 @@ public:
 
     virtual void init();
     virtual Error validateValue(const QVariant& pValue, bool pThrow = true) const override;
+    virtual bool isEnum() const override { return std::is_enum<TType>::value; }
+    virtual int sizeOf() const override { return sizeof(TType); }
 
 public:
     inline Condition operator==(const TType& pValue) const { return Condition(this, Condition::OpEqual, QVariant::fromValue<TType>(pValue)); }
@@ -146,19 +151,19 @@ inline Error validateWithOperators(const QVariant &pValue, const IField* pFld)
     if (pFld->max().isValid() && pFld->min().isValid())
     {
         if (v < pFld->min().value<TType>() || v > pFld->max().value<TType>())
-            return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть между '%3' и '%4'")
+            return ErrorBadArgument(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть между '%3' и '%4'")
                              .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->min().toString()).arg(pFld->max().toString()));
     }
     else
     {
         if (pFld->max().isValid())
         {
-            if (v > pFld->max().value<TType>()) return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть меньше чем '%3'")
+            if (v > pFld->max().value<TType>()) return ErrorBadArgument(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть меньше чем '%3'")
                                                  .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->max().toString()));
         }
         if (pFld->min().isValid())
         {
-            if (v < pFld->min().value<TType>()) return Error(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть больше чем '%3'")
+            if (v < pFld->min().value<TType>()) return ErrorBadArgument(ERRLOC, TR("Значение поля '%1' таблицы '%2' должно быть больше чем '%3'")
                                                  .arg(pFld->name()).arg(pFld->tableName()).arg(pFld->min().toString()));
         }
     }

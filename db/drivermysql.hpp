@@ -37,9 +37,11 @@ protected:
     virtual void migrateField(const IField* pField, QSqlRecord pDbRecord);
     virtual void migrateIndex(const Index* pIndex);
     qint64 execSql(const QString& pSql);
+    qint64 execSqlQuery(QSqlQuery& pQuery);
     virtual void doQuery(const QString& pSql);
     virtual void doQuery(QSqlQuery pQuery);
     bool hasRecord();
+    QSqlQuery getPreparedQuery(const QString& pSql);
 
     static QString fieldDefinition(const IField* pField);
     static QString typeName(const IField* pField);
@@ -53,6 +55,7 @@ protected:
 private:
     QSqlDatabase mDb;
     QSqlQuery mCurrentQuery;
+    QMap<QString, QSqlQuery> mPrepared;
     bool mInTransaction = false;
 };
 

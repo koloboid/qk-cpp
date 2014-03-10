@@ -114,12 +114,13 @@ Driver* Db::drv()
         }
         else
         {
-            throw Error(ERRLOC, TR("Драйвер '%1' не поддерживается системой").arg(mDriverName), TR("Поддерживаемые драйвера: mysql"));
+            throw ErrorObjectNotFound(ERRLOC, TR("Драйвер '%1' не поддерживается системой. Поддерживаемые драйвера: mysql").arg(mDriverName));
         }
     }
     if (!mThreadDriver->checkConnection())
     {
-        mThreadDriver->disconnect();
+        delete mThreadDriver;
+        mThreadDriver = new DriverMySql(mHostName, mPort, mDbName, mUserName, mPassword, mConnectionOptions);
         mThreadDriver->connect();
     }
 //    if (mThreadDriver->inTransaction()) mThreadDriver->rollback();

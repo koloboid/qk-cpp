@@ -24,18 +24,16 @@ public:
         try
         {
             mHandler->processRequest(mContext);
+            mContext->finish();
         }
         catch (const Error& pErr)
         {
-            mContext->respondError(pErr);
-            rpclog()->error(pErr);
+            mContext->die(pErr);
         }
         catch (const std::exception& pStdErr)
         {
-            mContext->respondError(pStdErr);
-            rpclog()->error(pStdErr);
+            mContext->die(pStdErr);
         }
-        mContext->finish();
     }
 
 private:
@@ -60,18 +58,16 @@ public:
         try
         {
             mFunc(mContext);
+            mContext->finish();
         }
         catch (const Error& pErr)
         {
-            mContext->respondError(pErr);
-            rpclog()->error(pErr);
+            mContext->die(pErr);
         }
         catch (const std::exception& pStdErr)
         {
-            mContext->respondError(pStdErr);
-            rpclog()->error(pStdErr);
+            mContext->die(pStdErr);
         }
-        mContext->finish();
     }
 
 private:
@@ -155,7 +151,7 @@ void Handler::callMethod(Context* pCtx, int pMethodIndex)
     QMetaMethod mt = this->metaObject()->method(pMethodIndex);
     if (!mt.invoke(this, Qt::DirectConnection, Q_ARG(Context*, pCtx)))
     {
-        throw Error(ERRLOC, tr("Метод '%1' не вызван по причине несовпадающих параметров").arg(QString(mt.name())));
+        throw ErrorBadArgument(ERRLOC, tr("Метод '%1' не вызван по причине несовпадающих параметров").arg(QString(mt.name())));
     }
 }
 

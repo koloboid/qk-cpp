@@ -96,7 +96,7 @@ void Config::loadJSON(const QString& pFileName)
     QFile file(pFileName);
     if (!file.open(QIODevice::ReadOnly))
     {
-        return throw Error(ERRLOC, tr("Unable to load config file from '%1'").arg(pFileName), file.errorString());
+        return throw Error(500, ERRLOC, tr("Не удалось открыть файл с настройками '%1'").arg(pFileName), file.errorString());
     }
     loadJSONText(QString::fromUtf8(file.readAll()));
 }
@@ -107,7 +107,7 @@ void Config::loadJSONText(const QString& pJSON)
     QJsonDocument doc = QJsonDocument::fromJson(pJSON.toUtf8(), &err);
     if (doc.isNull())
     {
-        return throw Error(ERRLOC, tr("Unable to load valid JSON config"), err.errorString());
+        return throw Error(500, ERRLOC, tr("Документ с настройками поврежден"), err.errorString());
     }
     return applyJSONRecursive(doc.object());
 }
@@ -248,7 +248,7 @@ QString Config::saveJSON(const QString& pFileName)
         QFile file(pFileName);
         if (!file.open(QIODevice::WriteOnly))
         {
-            throw Error(ERRLOC, tr("Невозможно сохранить файл конфигурации в '%1'").arg(pFileName), file.errorString());
+            throw Error(500, ERRLOC, tr("Невозможно сохранить файл конфигурации в '%1'").arg(pFileName), file.errorString());
         }
         else
         {

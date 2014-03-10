@@ -1,6 +1,7 @@
-#include <qk/core/error.hpp>
+#include "errordb.hpp"
 #include "table.hpp"
 #include "field.hpp"
+#include "db.hpp"
 
 using namespace Qk::Core;
 
@@ -40,16 +41,34 @@ void ITable::init()
         {
             if (mPrimaryField)
             {
-                throw Error(ERRLOC, TR("Таблица '%1' имеет два первичных ключа (поля '%1' и '%2'), что невозможно.")
-                    .arg(mPrimaryField->name()).arg(fld->name()));
+                throw ErrorDb(ERRLOC, TR("Таблица '%1' имеет два первичных ключа (поля '%2' и '%3'), что невозможно.")
+                    .arg(name()).arg(mPrimaryField->name()).arg(fld->name()));
             }
             else mPrimaryField = fld;
+        }
+        if (fld->flags() & FieldFlag::Grouping)
+        {
+            if (mGroupField)
+            {
+                throw ErrorDb(ERRLOC, TR("Таблица '%1' имеет два групповых ключа (поля '%2' и '%3'), что невозможно.")
+                    .arg(name()).arg(mGroupField->name()).arg(fld->name()));
+            }
+            else mGroupField = fld;
+        }
+        if (fld->flags() & FieldFlag::DisplayField)
+        {
+            if (mDisplayField)
+            {
+                dblog()->warn(TR("Таблица '%1' имеет олее одного отображаемого поля ('%2' и '%3')")
+                    .arg(name()).arg(mDisplayField->name()).arg(fld->name()));
+            }
+            else mDisplayField = fld;
         }
         fld->init();
     }
     if (!primaryField())
     {
-        throw Error(ERRLOC, TR("Таблица '%1' не имеет первичного ключа. Определите первичный ключ в схеме данных").arg(name()));
+        throw ErrorDb(ERRLOC, TR("Таблица '%1' не имеет первичного ключа. Определите первичный ключ в схеме данных").arg(name()));
     }
 }
 

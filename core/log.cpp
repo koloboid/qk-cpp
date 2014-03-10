@@ -59,7 +59,7 @@ void LogBase::enqueue(LogItem& pItem)
 {
     if (!isRunning())
     {
-        throw Error(ERRLOC, TR("Невозможно записать сообщение в журнал, т.к. он не запущен. Запустите его вызовом LogBase::start()"));
+        throw Error(500, ERRLOC, TR("Невозможно записать сообщение в журнал, т.к. он не запущен. Запустите его вызовом LogBase::start()"));
     }
     mQueue.enqueue(pItem);
 }
@@ -106,7 +106,7 @@ void LogBase::addLogger(Logger *pLogger)
 {
     if (mRun)
     {
-        throw Error(ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
+        throw Error(500, ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
     }
     mLoggers.append(pLogger);
 }
@@ -115,7 +115,7 @@ void LogBase::removeLogger(Logger *pLogger)
 {
     if (mRun)
     {
-        throw Error(ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
+        throw Error(500, ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
     }
     mLoggers.removeOne(pLogger);
     delete pLogger;
@@ -125,7 +125,7 @@ void LogBase::clearLoggers()
 {
     if (mRun)
     {
-        throw Error(ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
+        throw Error(500, ERRLOC, TR("Невозможно изменить набор логгеров при работающем движке журнала. Остановите его, вызовом LogBase::stop()"));
     }
     mLoggers.clear();
 }

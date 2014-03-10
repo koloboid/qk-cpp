@@ -116,7 +116,7 @@ void HttpContext::sendResponse()
     // main server thread
     if (mResp)
     {
-        mResp->writeHead(statusCode(), statusText().toUtf8());
+        mResp->writeHead((HttpResponseStatus)error().code());
         if (session() && session()->isNew())
         {
             setCookie("QKSESSID", session()->id().toString(), "/");

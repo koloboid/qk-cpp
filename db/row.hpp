@@ -47,6 +47,7 @@ public:
     virtual void save(Driver* pDrv = 0);
     virtual void drop(Driver* pDrv = 0);
     virtual void load(const QSqlRecord& pRecord);
+    virtual QString displayName();
 
     QVariant get(const IField& pField, bool pLazyFetch = false) const { return get(&pField, pLazyFetch); }
     IRow& set(const IField& pField, const QVariant& pValue) { return set(&pField, pValue); }
@@ -58,7 +59,7 @@ public:
     QVariant get(const IField* pField, bool pLazyFetch = false) const { if (pLazyFetch && pField->linkedTo()) return lazyFetch(pField); return mData->mValues.value(pField); }
     IRow& set(const IField* pField, const QVariant& pValue);
     template<class T>
-    T get(const IField* pField, bool pLazyFetch = false) const { return QVariant::value<T>(get(pField, pLazyFetch)); }
+    T get(const IField* pField, bool pLazyFetch = false) const { return get(pField, pLazyFetch).value<T>(); }
     template<class T>
     IRow& set(const IField* pField, const T& pValue) { return set(pField, QVariant::fromValue<T>(pValue)); }
 

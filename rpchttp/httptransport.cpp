@@ -33,7 +33,7 @@ void HttpTransport::run()
         mHttpServer = new HttpServer(this);
         if (!mHttpServer->listen(mListenAddr, mListenPort))
         {
-            throw Error(ERRLOC, tr("Невозможно установить HTTP сервер на %1:%2. Адрес занят другим сокетом")
+            throw Error(500, ERRLOC, tr("Невозможно установить HTTP сервер на %1:%2. Адрес занят другим сокетом")
                         .arg(mListenAddr.toString()).arg(mListenPort));
         }
         connect(mHttpServer, &HttpServer::requestReady, this, &HttpTransport::onRequestReady);

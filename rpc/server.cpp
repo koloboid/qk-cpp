@@ -149,18 +149,16 @@ void Server::onRequest(Transport*, Context* pContext) noexcept
         else
         {
             pContext->log()->warn(tr("Не определен обработчик для пути '%1'").arg(path));
-            pContext->respondError(tr("Страница не найдена"), 404);
+            pContext->die(ErrorObjectNotFound(ERRLOC));
         }
     }
     catch (const Error& pErr)
     {
-        pContext->log()->error(pErr);
-        pContext->respondError(pErr);
+        pContext->die(pErr);
     }
     catch (const std::exception& pStdErr)
     {
-        pContext->log()->error(pStdErr);
-        pContext->respondError(pStdErr.what());
+        pContext->die(pStdErr);
     }
     if (!pContext->hasAsyncCall()) pContext->finish();
 }

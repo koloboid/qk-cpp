@@ -10,8 +10,8 @@ Error::Error()
 {
 }
 
-Error::Error(const QString& pLocation, const QString& pMessage, const QString& pDetails)
-    : mMessage(pMessage), mLocation(pLocation), mDetails(pDetails), mBacktrace(LogBase::getBacktrace())
+Error::Error(quint32 pCode, const QString& pLocation, const QString& pMessage, const QString& pDetails)
+    : mCode(pCode), mMessage(pMessage), mLocation(pLocation), mDetails(pDetails), mBacktrace(LogBase::getBacktrace())
 {
 }
 

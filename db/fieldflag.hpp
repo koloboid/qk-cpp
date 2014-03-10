@@ -14,7 +14,7 @@ public:
     {
         Simple =               0x00000000,
         Primary =              0x00000001,
-        IDGenerator =          0x00000002,
+        DisplayField =         0x00000002,
         Counter =              0x00000008,
         Filterable =           0x00000010,
         IterableJoin =         0x00000020,
@@ -33,6 +33,7 @@ public:
         AllowNull =            0x00040000,
         NonSerializable =      0x00080000,
         CaseInsensitive =      0x00100000,
+        Grouping =             0x00200000,
     };
 
     QKFLAG(Value)

@@ -30,6 +30,7 @@ void IRow::reset()
     {
         this->setPrivate(fld, fld->defaultValue());
     }
+    mData->mChangedFields.clear();
 }
 
 QList<Error> IRow::validate() const
@@ -64,22 +65,33 @@ void IRow::load(const QSqlRecord& pRecord)
         IField* fld = table()->field(pRecord.fieldName(i));
         setPrivate(fld, pRecord.value(i));
     }
+    mData->mChangedFields.clear();
     mData->mState = RowState::Original;
+}
+
+QString IRow::displayName()
+{
+    IField* fld = table()->displayField();
+    if (!fld) fld = table()->primaryField();
+    return get(fld).toString();
 }
 
 IRow&IRow::set(const IField* pField, const QVariant& pValue)
 {
-    if (pField->readOnly()) throw new Error(ERRLOC, TR("Поле '%1' таблицы '%2' только для чтения, модификация возможна только на приватном уровне класса")
-                                            .arg(pField->name()).arg(pField->table()->name()), TR("Идентификатор строки - '%1'")
-                                            .arg(primaryValue().toString()));
+    if (pField->readOnly()) throw new ErrorNotAuthorized(ERRLOC, TR("Поле '%1' таблицы '%2' только для чтения, модификация возможна только на приватном уровне класса. Идентификатор строки - '%3'")
+                                            .arg(pField->name()).arg(pField->table()->name()).arg(primaryValue().toString()));
     return setPrivate(pField, pValue);
 }
 
 IRow&IRow::setPrivate(const IField* pField, const QVariant& pValue)
 {
-    mData->mValues[pField] = pValue;
-    if (mData->mState == RowState::Original) mData->mState = RowState::Modified;
-    if (!mData->mChangedFields.contains(pField)) mData->mChangedFields.append(pField);
+    QVariant v = mData->mValues.value(pField);
+    if (v != pValue)
+    {
+        mData->mValues[pField] = pValue;
+        if (mData->mState == RowState::Original) mData->mState = RowState::Modified;
+        if (!mData->mChangedFields.contains(pField)) mData->mChangedFields.append(pField);
+    }
     return *this;
 }
 

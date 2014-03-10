@@ -26,6 +26,7 @@ public:
 
 protected:
     void writeHead(const QString& pName);
+    QString escapeStr(const QString& pStr);
 
 private:
     enum EState
