@@ -9,9 +9,9 @@ QT       += network xml
 
 TARGET = qk.core
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += staticlib c++11
 INCLUDEPATH += ../../
-QMAKE_CXXFLAGS += -std=c++0x -Wall
+QMAKE_CXXFLAGS += -Wall
 
 SOURCES += \
     timespan.cpp \
@@ -19,7 +19,6 @@ SOURCES += \
     logitem.cpp \
     loggertextio.cpp \
     logger.cpp \
-    log.glibc.cpp \
     log.cpp \
     lock.cpp \
     error.cpp \
@@ -54,11 +53,11 @@ HEADERS += \
     formatter.hpp \
     serializable.hpp
 
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
+linux-g++|linux-g++-64|linux-g++-32 {
+    SOURCES += \
+        log.glibc.cpp \
+} else {
+    SOURCES += \
+        log.dummy.cpp \
 }
+

@@ -7,10 +7,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-namespace Qk
-{
-namespace Core
-{
+namespace Qk {
+namespace Core {
 
 QString LogBase::getBacktrace(quint8 pMaxSize)
 {

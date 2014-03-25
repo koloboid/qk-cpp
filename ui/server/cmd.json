@@ -1,0 +1,29 @@
+{
+    "cmdList": [
+        {
+            "cmd": "createWindow",
+            "args": {
+                "id": 877348218723092,
+                "url": "/api/milestone/core/view/flogin"
+            },
+            "cmdList": [
+                {
+                    "cmd": "showWindow",
+                    "args": {
+                        "id": 877348218723092,
+                    }
+                },
+                {
+                    "cmd": "bindData",
+                    "args": {
+                        "id": 877348218723092,
+                        "data": {
+                            "txtLogin": "@:/lastLogin",
+                            "txtCompany": "@:/lastCompany"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

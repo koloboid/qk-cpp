@@ -42,6 +42,7 @@ protected:
     virtual void doQuery(QSqlQuery pQuery);
     bool hasRecord();
     QSqlQuery getPreparedQuery(const QString& pSql);
+    QMap<QString, QSqlRecord> getDbFields(const QString& pTableName);
 
     static QString fieldDefinition(const IField* pField);
     static QString typeName(const IField* pField);

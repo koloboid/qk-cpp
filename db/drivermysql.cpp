@@ -260,19 +260,26 @@ void DriverMySql::migrateField(const IField* pField, QSqlRecord pDbRecord)
 {
     ASSERTPTR(pField);
 
-    QSqlField fld = pDbRecord.field(pField->name());
-    uint mytype = pField->underylingType();
-    if (mytype == QMetaType::QString && !(pField->flags() & EFieldFlag::CaseInsensitive))
+    QString dbtype = pDbRecord.value("Type").toString();
+    if (pDbRecord.value("Collation").toString().toLower().endsWith("_bin")) dbtype += " binary";
+    if (pDbRecord.value("Null").toString().toLower() == "yes") dbtype += " null";
+    else dbtype += " not null";
+    QString extra = pDbRecord.value("Extra").toString();
+    if (!extra.isEmpty())
     {
-        mytype = QMetaType::QByteArray;
+        dbtype += " " + extra;
     }
-    if (!fld.isValid())
+    if (pDbRecord.value("Key").toString().toLower() == "pri") dbtype += " primary key";
+    dbtype = dbtype.toLower();
+    QString mytype = fieldDefinition(pField).replace("`" + pField->name() + "` ", "").toLower();
+    if (pDbRecord.isEmpty())
     {
         QString code = QString("alter table `%1` add column %2").arg(pField->table()->name()).arg(fieldDefinition(pField));
         execSql(code);
     }
-    else if (fld.type() != mytype)
+    else if (dbtype != mytype)
     {
+        dblog()->debug("Alter field %3, my field: '%1', db field: '%2'").arg(mytype).arg(dbtype).arg(pField->name());
         QString code = QString("alter table `%1` change column %2 %3")
             .arg(pField->table()->name())
             .arg(fieldName(pField))
@@ -317,6 +324,18 @@ QSqlQuery DriverMySql::getPreparedQuery(const QString& pSql)
     return q;
 }
 
+QMap<QString, QSqlRecord> DriverMySql::getDbFields(const QString& pTableName)
+{
+    QMap<QString, QSqlRecord> rv;
+    doQuery("show full columns from `" + pTableName + "`");
+    while (mCurrentQuery.next())
+    {
+        QSqlRecord rec = mCurrentQuery.record();
+        rv[rec.value("Field").toString()] = rec;
+    }
+    return rv;
+}
+
 void DriverMySql::doQuery(const QString& pQuery)
 {
     QSqlQuery q(mDb);
@@ -347,19 +366,18 @@ void DriverMySql::migrateIndex(const Index* pIndex)
 void DriverMySql::migrateTable(const ITable& pTable)
 {
     dblog()->debug(TR("Миграция таблицы '%1'").arg(pTable.name()));
-    QSqlRecord rec = mDb.record(pTable.name());
-    if (rec.isEmpty())
+    if (mDb.record(pTable.name()).isEmpty())
     {
         IField* id = pTable.primaryField();
         execSql(QString("create table `%1` (%2) ENGINE=%3")
             .arg(pTable.name())
             .arg(fieldDefinition(id))
             .arg(pTable.engine().isEmpty() ? QString("InnoDB") : pTable.engine()));
-        rec = mDb.record(pTable.name());
     }
+    QMap<QString, QSqlRecord> dbfields = getDbFields(pTable.name());
     foreach (IField* fld, pTable.fields().values())
     {
-        migrateField(fld, rec);
+        migrateField(fld, dbfields.value(fld->name()));
     }
 }
 
@@ -458,23 +476,30 @@ QString DriverMySql::typeName(const IField* pField)
         case QMetaType::QDateTime:
             return "datetime";
         case QMetaType::Short:
-            return "smallint";
+            return "smallint(5)";
         case QMetaType::Int:
-            return "int";
+            return "int(11)";
         case QMetaType::LongLong:
-            return "bigint";
+            return "bigint(20)";
         case QMetaType::SChar:
-            return "tinyint";
+            return "tinyint(3)";
         case QMetaType::QString:
-            return "varchar(" + pField->max().toString() + (pField->flags() & EFieldFlag::CaseInsensitive ? ")" : ") BINARY");
+            if (pField->max() > 32767)
+            {
+                return "text";
+            }
+            else
+            {
+                return "varchar(" + pField->max().toString() + (pField->flags() & EFieldFlag::CaseInsensitive ? ")" : ") BINARY");
+            }
         case QMetaType::UShort:
-            return "smallint unsigned";
+            return "smallint(5) unsigned";
         case QMetaType::UInt:
-            return "int unsigned";
+            return "int(11) unsigned";
         case QMetaType::ULongLong:
-            return "bigint unsigned";
+            return "bigint(20) unsigned";
         case QMetaType::UChar:
-            return "tinyint unsigned";
+            return "tinyint(3) unsigned";
         case QMetaType::Float:
             return "single";
         case QMetaType::Double:

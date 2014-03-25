@@ -30,10 +30,8 @@ void qkMessageHandler(QtMsgType pType, const QMessageLogContext& pContext, const
     }
 }
 
-namespace Qk
-{
-namespace Core
-{
+namespace Qk {
+namespace Core {
 
 Log* log()
 {
